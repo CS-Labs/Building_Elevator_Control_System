@@ -4,10 +4,12 @@ import engine.ApplicationEntryPoint;
 import engine.EngineLoop;
 
 // lol
-public class ExampleApplication implements ApplicationEntryPoint {
+public class SetUp implements ApplicationEntryPoint {
+
     @Override
     public void init() {
         System.out.println("Initialized");
+        new ControlPanel();
     }
 
     @Override
@@ -16,8 +18,10 @@ public class ExampleApplication implements ApplicationEntryPoint {
     }
 
     public static void main(String[] args) {
-        ExampleApplication app = new ExampleApplication();
+        SetUp app = new SetUp();
         EngineLoop loop = new EngineLoop();
         loop.start(app, args);
+
+
     }
 }
