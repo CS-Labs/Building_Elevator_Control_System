@@ -9,7 +9,7 @@ class ControlPanel extends GridPane
 {
     private RightPanel m_RightPanel = new RightPanel(700,0);
     private LeftPanel m_LeftPanel = new LeftPanel(0,0);
-    private BottomPanel m_BottomPanel = new BottomPanel(0,500);
+    private BottomPanel m_BottomPanel = new BottomPanel(0,400);
     ControlPanel()
     {
         Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, m_RightPanel));

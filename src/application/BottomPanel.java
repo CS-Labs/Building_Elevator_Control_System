@@ -9,7 +9,7 @@ public class BottomPanel extends GridPane
         this.setLayoutX(x);
         this.setLayoutY(y);
         // Arbitrary for now.
-        this.setPrefHeight(200);
+        this.setPrefHeight(300);
         this.setPrefWidth(1000);
     }
 }
