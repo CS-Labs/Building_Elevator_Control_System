@@ -105,8 +105,10 @@ public class SceneManager {
      * Activates only the GUI elements
      */
     public void activateGUIElements() {
-        for (Node node : _guiElements) {
-            _sendMessage(Singleton.ADD_UI_ELEMENT, node);
+        synchronized (_guiElements) {
+            for (Node node : _guiElements) {
+                _sendMessage(Singleton.ADD_UI_ELEMENT, node);
+            }
         }
     }
 
@@ -142,8 +144,10 @@ public class SceneManager {
      * Deactivates only the GUI elements
      */
     public void deactivateGUIElements() {
-        for (Node node : _guiElements) {
-            _sendMessage(Singleton.REMOVE_UI_ELEMENT, node);
+        synchronized (_guiElements) {
+            for (Node node : _guiElements) {
+                _sendMessage(Singleton.REMOVE_UI_ELEMENT, node);
+            }
         }
     }
 
@@ -197,7 +201,9 @@ public class SceneManager {
      *         of the state of the frame when you asked for it.
      */
     public ArrayList<Node> getGUIElements() {
-        return new ArrayList<>(_guiElements);
+        synchronized (_guiElements) {
+            return new ArrayList<>(_guiElements);
+        }
     }
 
     /**
