@@ -190,6 +190,8 @@ public class TaskManager {
     }
 
     private void _getAndExecuteTask() {
+        Counter counter = null;
+        boolean successfullyCompletedTask = false;
         try {
             TaskWrapper wrapper = _getTask();
             // If the wrapper was null, sleep for a little
@@ -198,22 +200,28 @@ public class TaskManager {
                 return;
             }
             Task task = wrapper.getTask();
-            Counter counter = wrapper.getCounter();
+            counter = wrapper.getCounter();
             if (task == null) {
                 // The task was null, so try to remove the task wrapper that
                 // resulted in the null task - make sure to check and see if
                 // the one you removed is actually the one you think it is
                 TaskWrapper removed = _tasks.poll();
-                if (wrapper != removed) _tasks.add(removed); // Add it back - it was falsely removed
+                if (wrapper != removed && removed != null) _tasks.add(removed); // Add it back - it was falsely removed
                 Thread.sleep(1);
             }
             else {
+                successfullyCompletedTask = true;
                 task.execute();
                 counter._decrement();
             }
         }
         catch (Exception e) {
-            // Do nothing
+            e.printStackTrace();
+            // If this is true then we technically executed the task, but it threw
+            // an exception while it was running so we need to mark it completed
+            if (counter != null && successfullyCompletedTask) {
+                counter._decrement();
+            }
         }
     }
 }

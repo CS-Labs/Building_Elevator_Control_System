@@ -75,7 +75,12 @@ public class Engine implements PulseEntity, MessageHandler {
 
         @Override
         public void execute() {
-            _entity.process();
+            try {
+                _entity.process();
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
             _engine._notifyOfLogicTaskCompletion(this);
         }
     }
