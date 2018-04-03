@@ -2,9 +2,11 @@ package application;
 
 import engine.Engine;
 import engine.Message;
+import engine.SceneManager;
 import engine.Singleton;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.layout.GridPane;
 
 import java.io.IOException;
@@ -16,29 +18,38 @@ public class ControlPanel extends GridPane
     private LeftPanel m_LeftPanel = new LeftPanel(0,0);
     private GridPane m_BottomPanel = new GridPane();
     private BottomPanelController bottomController;
+    private SceneManager m_ConstantPanel = new SceneManager(); // always there (I think)
+    private SceneManager m_CCTVView = new SceneManager();
     ControlPanel()
     {
         m_BottomPanel.setLayoutX(0);
         m_BottomPanel.setLayoutY(400);
         bottomController = new BottomPanelController();
         _addFXMLCode1();
-        Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, m_RightPanel));
-        Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, m_LeftPanel));
-        Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, m_BottomPanel));
+        //Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, m_RightPanel));
+        //Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, m_LeftPanel));
+        //Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, m_BottomPanel));
+        m_ConstantPanel.add(m_BottomPanel);
+        m_CCTVView.add(m_RightPanel);
+        m_CCTVView.add(m_LeftPanel);
+        m_CCTVView.activateAll();
+        m_ConstantPanel.activateAll();
     }
 
     // The reason the control panel is broken up into three different components is because two of them
     // are invisible during the overview mode.
     public void switchToOverView()
     {
-        Engine.getMessagePump().sendMessage(new Message(Singleton.REMOVE_UI_ELEMENT, m_RightPanel));
-        Engine.getMessagePump().sendMessage(new Message(Singleton.REMOVE_UI_ELEMENT, m_LeftPanel));
+        //Engine.getMessagePump().sendMessage(new Message(Singleton.REMOVE_UI_ELEMENT, m_RightPanel));
+        //Engine.getMessagePump().sendMessage(new Message(Singleton.REMOVE_UI_ELEMENT, m_LeftPanel));
+        m_CCTVView.deactivateAll();
     }
 
     public void switchToCCTVView()
     {
-        Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, m_RightPanel));
-        Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, m_LeftPanel));
+        //Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, m_RightPanel));
+        //Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, m_LeftPanel));
+        m_CCTVView.activateAll();
     }
     
     //Add FXML code.

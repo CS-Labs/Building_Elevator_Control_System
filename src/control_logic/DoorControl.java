@@ -1,16 +1,22 @@
 package control_logic;
 
+import engine.SceneManager;
 import engine.LogicEntity;
 
 class DoorControl implements LogicEntity {
     private Door m_LeftDoor;
     private Door m_RightDoor;
+    private SceneManager m_Doors = new SceneManager();
+
     DoorControl()
     {
         m_LeftDoor = new Door(SideTypes.LEFT,400,80,5,100,250);
         m_RightDoor = new Door(SideTypes.RIGHT, 500,80,5,100,250);
-        m_LeftDoor.addToWorld();
-        m_RightDoor.addToWorld();
+        m_Doors.add(m_LeftDoor);
+        m_Doors.add(m_RightDoor);
+        m_Doors.activateAll();
+        //m_LeftDoor.addToWorld();
+        //m_RightDoor.addToWorld();
     }
 
     public void openDoors()

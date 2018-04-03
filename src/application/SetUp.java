@@ -6,12 +6,16 @@ import engine.*;
 // lol
 public class SetUp implements ApplicationEntryPoint {
 
+    private SceneManager _scene = new SceneManager();
+
     @Override
     public void init() {
         System.out.println("Initialized");
         m_registerSimulationMessages();
         new ControlPanel();
-        Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_LOGIC_ENTITY, new BuildingControl()));
+        //Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_LOGIC_ENTITY, new BuildingControl()));
+        _scene.add(new BuildingControl());
+        _scene.activateAll();
     }
 
     @Override
