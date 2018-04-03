@@ -1,7 +1,5 @@
 package engine;
 
-import engine.math.Vector3;
-
 /**
  * This class sits at the top of the hierarchy of objects
  * which can be registered with the world. Regardless of

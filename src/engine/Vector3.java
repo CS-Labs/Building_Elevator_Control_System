@@ -1,4 +1,4 @@
-package engine.math;
+package engine;
 
 /**
  * Represents a 3 dimensional vector

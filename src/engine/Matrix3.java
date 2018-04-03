@@ -1,4 +1,4 @@
-package engine.math;
+package engine;
 
 /**
  * A simple Matrix3x3 implementation with some common operations,
