@@ -1,15 +1,14 @@
 package application;
 
-public class SpecialFunctionButton extends ElevatorButton
+class SpecialFunctionButton extends ElevatorButton
 {
-    private boolean m_Toggle = true;
     SpecialFunctionButton(SpecialButtonTypes buttonType)
     {
         super.setGraphic(buttonType.toString()+"ON.png", buttonType.toString() + "OFF.png");
         this.setOnAction((event) -> {
-            if(m_Toggle) this.setGraphic(onImg);
+            if(!m_On) this.setGraphic(onImg);
             else  this.setGraphic(offImg);
-            m_Toggle = !m_Toggle;
+            m_On = !m_On;
         });
     }
 

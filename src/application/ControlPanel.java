@@ -1,7 +1,5 @@
 package application;
 
-import java.io.IOException;
-
 import engine.Engine;
 import engine.Message;
 import engine.Singleton;
@@ -9,12 +7,16 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.layout.GridPane;
 
-class ControlPanel extends GridPane
+import java.io.IOException;
+import java.util.ArrayList;
+
+public class ControlPanel extends GridPane
 {
     private RightPanel m_RightPanel = new RightPanel(700,0);
     private LeftPanel m_LeftPanel = new LeftPanel(0,0);
     private GridPane m_BottomPanel = new GridPane();
     private BottomPanelController bottomController;
+    private ArrayList<Integer> m_ManuallySelectedFloorNumbers = new ArrayList<>();
     ControlPanel()
     {
         m_BottomPanel.setLayoutX(0);
@@ -55,7 +57,5 @@ class ControlPanel extends GridPane
       }
       m_BottomPanel.getChildren().setAll(page);
     }
-
-
 
 }

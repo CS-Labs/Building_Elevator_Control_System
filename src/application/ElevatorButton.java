@@ -8,6 +8,7 @@ class ElevatorButton extends Button
 {
     ImageView onImg;
     ImageView offImg;
+    boolean m_On = false;
 
     ElevatorButton()
     {
@@ -26,4 +27,6 @@ class ElevatorButton extends Button
         offImg.setFitWidth(50);
         this.setGraphic(offImg);
     }
+
+    public boolean isOn() {return m_On;}
 }

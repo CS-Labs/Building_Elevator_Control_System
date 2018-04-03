@@ -12,7 +12,6 @@ class RightPanel extends GridPane
         // Arbitrary
         this.setPrefHeight(400);
         this.setPrefWidth(300);
-
         this.add(new FloorPanel(),1,2);
     }
 }
