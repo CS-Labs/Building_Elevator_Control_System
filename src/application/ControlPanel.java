@@ -16,7 +16,6 @@ public class ControlPanel extends GridPane
     private LeftPanel m_LeftPanel = new LeftPanel(0,0);
     private GridPane m_BottomPanel = new GridPane();
     private BottomPanelController bottomController;
-    private ArrayList<Integer> m_ManuallySelectedFloorNumbers = new ArrayList<>();
     ControlPanel()
     {
         m_BottomPanel.setLayoutX(0);
