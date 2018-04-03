@@ -7,10 +7,30 @@ import javafx.scene.image.ImageView;
 class FloorButton extends Button
 {
     private boolean m_Toggle = true;
-    FloorButton(int floorNumber)
+    FloorButton(int floorNumber, boolean open, boolean close, boolean fire)
     {
-        String onPath = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/" + floorNumber + "ON.png";
-        String offPath = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/" + floorNumber + "OFF.png";
+        String onPath = "";
+        String offPath = "";
+        if(floorNumber >= 0)
+        {
+          onPath = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/" + floorNumber + "ON.png";
+          offPath = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/" + floorNumber + "OFF.png";
+        }
+        else if(open)
+        {
+          onPath = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/openON.png";
+          offPath = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/openOFF.png";
+        }
+        else if(close)
+        {
+          onPath = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/closeON.png";
+          offPath = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/closeOFF.png";
+        }
+        else if(fire)
+        {
+          onPath = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/fireON.png";
+          offPath = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/fireOFF.png";
+        }
         ImageView onImg = new ImageView(new Image(getClass().getResourceAsStream(onPath)));
         ImageView offImg = new ImageView(new Image(getClass().getResourceAsStream(offPath)));
         onImg.setFitWidth(50);

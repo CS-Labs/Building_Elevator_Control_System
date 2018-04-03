@@ -1,8 +1,6 @@
 package application;
 
-import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.RowConstraints;
 
 class RightPanel extends GridPane
 {
@@ -12,7 +10,7 @@ class RightPanel extends GridPane
         this.setLayoutX(x);
         this.setLayoutY(y);
         // Arbitrary
-        this.setPrefHeight(700);
+        this.setPrefHeight(400);
         this.setPrefWidth(300);
 
         this.add(new FloorPanel(),1,2);
