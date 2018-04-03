@@ -12,7 +12,7 @@ class Cabin extends RenderEntity
         setTexture("/resources/img/CCTV_Views/elevator/cabin/cabinFrame.png");
         setLocationXYDepth(x, y, d);
         setWidthHeight(w, h);
-        m_FloorAlignment = new FloorAlignment(FloorNumber.ONE);
+        m_FloorAlignment = new FloorAlignment(FloorNumberTypes.ONE);
     }
 
     @Override

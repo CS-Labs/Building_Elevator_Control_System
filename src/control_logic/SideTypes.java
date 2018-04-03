@@ -1,6 +1,6 @@
 package control_logic;
 
-enum Side
+enum SideTypes
 {
     LEFT,
     RIGHT

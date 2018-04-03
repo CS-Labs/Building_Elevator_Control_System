@@ -1,6 +1,6 @@
 package control_logic;
 
-public enum FloorNumber
+public enum FloorNumberTypes
 {
     ONE(1),
     TWO(2),
@@ -14,7 +14,7 @@ public enum FloorNumber
     TEN(10);
 
     private final int value;
-    FloorNumber(int value) { this.value = value; }
+    FloorNumberTypes(int value) { this.value = value; }
     public int toDigit() { return value; }
 
 }

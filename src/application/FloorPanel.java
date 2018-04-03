@@ -16,7 +16,6 @@ class FloorPanel extends GridPane
 {
     FloorPanel()
     {
-        //this.setStyle("-fx-background-color: #b7babf");
         ImageView image = new ImageView("/resources/img/CCTV_Views/elevator/elevatorFloorPanel/buttonPanel.png");
         image.setFitHeight(400);
         image.setFitWidth(300);
@@ -27,29 +26,18 @@ class FloorPanel extends GridPane
         this.setHgap(10);
         this.setVgap(10);
         Queue<Integer> floors = new LinkedList<>(Arrays.asList(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15));
-        this.getColumnConstraints().add(new ColumnConstraints(50));
-        this.getColumnConstraints().add(new ColumnConstraints(50));
-        this.getColumnConstraints().add(new ColumnConstraints(50));
-        this.getColumnConstraints().add(new ColumnConstraints(50));
-        this.getColumnConstraints().add(new ColumnConstraints(50));
-        this.getColumnConstraints().add(new ColumnConstraints(50));
-        this.getRowConstraints().add(new RowConstraints(50));
-        this.getRowConstraints().add(new RowConstraints(50));
-        this.getRowConstraints().add(new RowConstraints(50));
-        this.getRowConstraints().add(new RowConstraints(50));
-        this.getRowConstraints().add(new RowConstraints(50));
-        this.getRowConstraints().add(new RowConstraints(50));
-        this.getRowConstraints().add(new RowConstraints(50));
-        this.getRowConstraints().add(new RowConstraints(50));
+        for(int i = 0; i < 5; i++) this.getColumnConstraints().add(new ColumnConstraints(50));
+        for(int i = 0; i < 8; i++) this.getRowConstraints().add(new RowConstraints(50));
         for(int r : Arrays.asList(4,3,2,1,0))
         {
             for(int c: Arrays.asList(3,1))
             {
-                this.add(new FloorButton(floors.poll(),false,false,false),c,r);
+                this.add(new FloorButton(floors.poll()),c,r);
             }
         }
-        this.add(new FloorButton(-1, true, false, false), 1, 5);
-        this.add(new FloorButton(-1, false, true, false), 2, 5);
-        this.add(new FloorButton(-1, false, false, true), 3, 5);
+        // Add special function buttons.
+        this.add(new SpecialFunctionButton(SpecialButtonTypes.CLOSE_DOORS),1,5);
+        this.add(new SpecialFunctionButton(SpecialButtonTypes.SOUND_FIRE_ALARM), 2, 5);
+        this.add(new SpecialFunctionButton(SpecialButtonTypes.OPEN_DOORS), 3,5);
     }
 }

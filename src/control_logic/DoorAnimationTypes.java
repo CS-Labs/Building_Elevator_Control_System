@@ -1,6 +1,6 @@
 package control_logic;
 
-public enum DoorAnimation
+public enum DoorAnimationTypes
 {
     OPEN,
     CLOSE,

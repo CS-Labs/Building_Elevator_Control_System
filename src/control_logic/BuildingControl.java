@@ -1,6 +1,9 @@
 package control_logic;
 
+import engine.Engine;
+import engine.Message;
 import engine.PulseEntity;
+import engine.Singleton;
 
 public class BuildingControl implements PulseEntity
 {
@@ -12,6 +15,8 @@ public class BuildingControl implements PulseEntity
         m_Cabin = new Cabin(300,0,4,400,400);
         m_DoorControl = new DoorControl();
         m_Cabin.addToWorld();
+        m_DoorControl.openDoors();
+        Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_LOGIC_ENTITY, m_DoorControl));
     }
 
     @Override
