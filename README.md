@@ -10,8 +10,7 @@ so we can see where they are, we should probably change the color? What ever col
 1 to 4 of the elevator CCTV views (this should probably be a drop down list since the number of elevators is configurable?), button to lock the floor panel buttons, etc. (See his requirements). Note we do not have to implement the functionality of most of these buttons yet.
 * Get a continual update loop running in the BuildingControl class, I implemented pulse entity but the pulse method is not being called, should this be a logic entity?
 * Add directional arrow inside cabin. 
-* Figure out a way to wipe out all render entities in the CCTV view while not losing reference. (These get wipped out when switching @SEE SceneManager
-to overview mode)
+* Figure out a way to wipe out all render entities in the CCTV view while not losing reference. (These get wipped out when switching to overview mode) @SEE SceneManager
 * Add support to floor button presses. This includes:
   * Updating internal floor number (this should automatically update the floor sign animation)
   * Trigger door open and close animations. (Support partially implemented)
