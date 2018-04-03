@@ -39,6 +39,8 @@ class FloorPanel extends GridPane
         this.getRowConstraints().add(new RowConstraints(50));
         this.getRowConstraints().add(new RowConstraints(50));
         this.getRowConstraints().add(new RowConstraints(50));
+        this.getRowConstraints().add(new RowConstraints(50));
+        this.getRowConstraints().add(new RowConstraints(50));
         for(int r : Arrays.asList(4,3,2,1,0))
         {
             for(int c: Arrays.asList(3,1))
