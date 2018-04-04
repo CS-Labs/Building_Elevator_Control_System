@@ -1,16 +1,11 @@
 package application;
 
-import engine.Engine;
-import engine.Message;
 import engine.SceneManager;
-import engine.Singleton;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.layout.GridPane;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class ControlPanel extends GridPane
 {

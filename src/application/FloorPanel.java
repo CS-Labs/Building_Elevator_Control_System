@@ -29,12 +29,12 @@ class FloorPanel extends GridPane
         this.setPadding(new Insets(10, 10, 10, 10));
         this.setHgap(10);
         this.setVgap(10);
-        Queue<Integer> floors = new LinkedList<>(Arrays.asList(1,2,3,4,5,6,7,8,9,10));
-        for(int i = 0; i < 5; i++) this.getColumnConstraints().add(new ColumnConstraints(50));
-        for(int i = 0; i < 8; i++) this.getRowConstraints().add(new RowConstraints(50));
+        Queue<Integer> floors = new LinkedList<>(Arrays.asList(2, 1, 4, 3, 6, 5, 8, 7, 10, 9));
+        for(int i = 0; i < 4; i++) this.getColumnConstraints().add(new ColumnConstraints(67));
+        for(int i = 0; i < 8; i++) this.getRowConstraints().add(new RowConstraints(52));
         for(int r : Arrays.asList(4,3,2,1,0))
         {
-            for(int c: Arrays.asList(3,1))
+            for(int c: Arrays.asList(2,1))
             {
                 FloorButton fb = new FloorButton(FloorNumberTypes.values()[floors.poll()]);
                 m_FloorButtons.add(fb);
@@ -42,10 +42,9 @@ class FloorPanel extends GridPane
             }
         }
         // Add special function buttons.
-        m_SpecialFunctionButtons.add(new SpecialFunctionButton(SpecialButtonTypes.CLOSE_DOORS));
-        m_SpecialFunctionButtons.add(new SpecialFunctionButton(SpecialButtonTypes.SOUND_FIRE_ALARM));
-        m_SpecialFunctionButtons.add(new SpecialFunctionButton(SpecialButtonTypes.OPEN_DOORS));
-        for(int i = 1; i <= 3; i++) this.add(m_SpecialFunctionButtons.get(i-1),i,5);
+        m_SpecialFunctionButtons.add(new SpecialFunctionButton(SpecialButtonTypes.STOP));
+        m_SpecialFunctionButtons.add(new SpecialFunctionButton(SpecialButtonTypes.KEY));
+        for(int i = 1; i <= 2; i++) this.add(m_SpecialFunctionButtons.get(i-1),i,5);
     }
 
 
