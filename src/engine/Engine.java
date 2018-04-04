@@ -2,6 +2,7 @@ package engine;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.stage.Stage;
 
@@ -10,6 +11,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -39,7 +41,7 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class Engine implements PulseEntity, MessageHandler {
     private static Engine _engine; // Self-reference
-    private static boolean _isInitialized = false;
+    private static volatile boolean _isInitialized = false;
     // Package private
     static final String R_RENDER_SCENE = "r_render_screen";
     static final String R_UPDATE_ENTITIES = "r_update_entities";
@@ -54,10 +56,12 @@ public class Engine implements PulseEntity, MessageHandler {
     private Renderer _renderer;
     private ConcurrentHashMap<TaskManager.Counter, Callback> _taskCallbackMap = new ConcurrentHashMap<>();
     private ConcurrentHashMap<LogicEntity, LogicEntityTask> _registeredLogicEntities = new ConcurrentHashMap<>();
-    private int _maxFrameRate;
-    private long _lastFrameTimeMS;
+    private volatile int _maxFrameRate;
+    private final int _maxMessageQueueProcessingRate = 240; // Measures in Hertz, i.e. times per second
+    private volatile long _lastMessageQueueFrameTimeMS;
+    private volatile long _lastFrameTimeMS;
     private volatile boolean _isRunning = false;
-    private boolean _updateEntities = true; // If false, nothing is allowed to move
+    private volatile boolean _updateEntities = true; // If false, nothing is allowed to move
 
     // Wrapper around each logic entity
     private class LogicEntityTask implements Task {
@@ -135,6 +139,35 @@ public class Engine implements PulseEntity, MessageHandler {
             _preInit();
             _init();
             // Initialize the game loop
+            Runnable frame = new Runnable() {
+                @Override
+                public void run() {
+                    if (!_isRunning) {
+                        shutdown(); //System.exit(0); // Need to shut the system down
+                        return;
+                    }
+                    // Schedule the next frame
+                    Platform.runLater(this);
+                    long currentTimeMS = System.currentTimeMillis();
+                    double deltaSeconds = (currentTimeMS - _lastFrameTimeMS) / 1000.0;
+                    // Don't pulse faster than the maximum refresh rate
+                    if (deltaSeconds >= (1.0 / _maxFrameRate)) {
+                        pulse(deltaSeconds);
+                        _lastFrameTimeMS = currentTimeMS;
+                    }
+                    // Message processing happens at a very fast rate, i.e. 240 times per second
+                    // to ensure high degree of responsiveness
+                    deltaSeconds = (currentTimeMS - _lastMessageQueueFrameTimeMS) / 1000.0;
+                    if (deltaSeconds >= (1.0 / _maxMessageQueueProcessingRate)) {
+                        _processMessages();
+                        _processCompletedTasks();
+                        _lastMessageQueueFrameTimeMS = currentTimeMS;
+                    }
+                }
+            };
+            // Schedule the first frame and then it will schedule itself from then on
+            Platform.runLater(frame);
+            /*
             new AnimationTimer() {
                 @Override
                 public void handle(long now) {
@@ -148,6 +181,39 @@ public class Engine implements PulseEntity, MessageHandler {
                     _lastFrameTimeMS = currentTimeMS;
                 }
             }.start();
+            */
+        }
+    }
+
+    private void _processMessages() {
+        // Check if any console variables changed and send messages for any that have
+        ArrayList<ConsoleVariable> changedVars = getConsoleVariables().getVariableChangesSinceLastCall();
+        for (ConsoleVariable cvar : changedVars)
+        {
+            _messageSystem.get().sendMessage(new Message(Singleton.CONSOLE_VARIABLE_CHANGED, cvar));
+        }
+        // Make sure we keep the messages flowing
+        getMessagePump().dispatchMessages();
+    }
+
+    private void _processCompletedTasks() {
+        // See if any tasks have finished on the logic threads and notify the caller if so
+        LinkedList<TaskManager.Counter> _completedCounters = new LinkedList<>();
+        // numCounters takes a snapshot of the task callback map so that we are guaranteed to
+        // only process a finite number of them during a given frame
+        int numCounters = _taskCallbackMap.size();
+        for (Map.Entry<TaskManager.Counter, Callback> entry : _taskCallbackMap.entrySet()) {
+            if (numCounters == 0) break;
+            if (entry.getKey().isComplete()) {
+                // Notify of task completion
+                entry.getValue().handleCallback();
+                _completedCounters.add(entry.getKey());
+            }
+            --numCounters;
+        }
+        // Remove any completed counters
+        for (TaskManager.Counter counter : _completedCounters) {
+            _taskCallbackMap.remove(counter);
         }
     }
 
@@ -156,38 +222,12 @@ public class Engine implements PulseEntity, MessageHandler {
      */
     @Override
     public void pulse(double deltaSeconds) {
-        // Check if any console variables changed and send messages for any that have
-        ArrayList<ConsoleVariable> changedVars = getConsoleVariables().getVariableChangesSinceLastCall();
-        for (ConsoleVariable cvar : changedVars)
-        {
-            _messageSystem.get().sendMessage(new Message(Singleton.CONSOLE_VARIABLE_CHANGED, cvar));
-        }
-        // Make sure these two get added so that all entities are updated and
-        // the screen is refreshed
         if (_updateEntities) getMessagePump().sendMessage(new Message(Engine.R_UPDATE_ENTITIES, deltaSeconds));
         getMessagePump().sendMessage(new Message(Engine.R_RENDER_SCENE, deltaSeconds));
-        // Make sure we keep the messages flowing
-        getMessagePump().dispatchMessages();
-        // See if any tasks have finished on the logic threads and notify the caller if so
-        LinkedList<TaskManager.Counter> _completedCounters = new LinkedList<>();
-        int numCounters = _taskCallbackMap.size();
-        for (Map.Entry<TaskManager.Counter, Callback> entry : _taskCallbackMap.entrySet()) {
-            if (entry.getKey().isComplete()) {
-                // Notify of task completion
-                entry.getValue().handleCallback();
-                _completedCounters.add(entry.getKey());
-            }
-        }
-        // Remove any completed counters
-        for (TaskManager.Counter counter : _completedCounters) {
-            _taskCallbackMap.remove(counter);
-        }
         for (PulseEntity entity : _pulseEntities)
         {
             entity.pulse(deltaSeconds);
         }
-        // Tell the renderer to update the screen
-        //_renderer.render(deltaSeconds);
     }
 
     @Override
@@ -241,6 +281,7 @@ public class Engine implements PulseEntity, MessageHandler {
             _registeredLogicEntities.clear();
             _application.shutdown();
             _taskManager.get().stop();
+            _isInitialized = false;
         }
     }
 
@@ -284,6 +325,7 @@ public class Engine implements PulseEntity, MessageHandler {
         synchronized(this) {
             getConsoleVariables().loadConfigFile("src/resources/engine.cfg");
             _registerDefaultCVars();
+            _maxFrameRate = Math.abs(Engine.getConsoleVariables().find(Singleton.ENG_LIMIT_FPS).getcvarAsInt());
             _registeredLogicEntities.clear();
             boolean headless = true;
             if (!Engine.getConsoleVariables().find(Singleton.HEADLESS).getcvarAsBool()) {
@@ -312,6 +354,7 @@ public class Engine implements PulseEntity, MessageHandler {
             _taskManager.get().start();
             _pulseEntities = new HashSet<>();
             _lastFrameTimeMS = System.currentTimeMillis();
+            _lastMessageQueueFrameTimeMS = System.currentTimeMillis();
             // Only initialize the renderer if there is a graphics context
             if (!headless) {
                 GraphicsContext gc = _window.init(_initialStage);
