@@ -20,6 +20,7 @@ public class ControlPanel extends GridPane
         m_BottomPanel.setLayoutX(0);
         m_BottomPanel.setLayoutY(400);
         bottomController = new BottomPanelController();
+     //   bottomController = new BottomPanel(10,100);
         _addFXMLCode1();
         //Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, m_RightPanel));
         //Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, m_LeftPanel));

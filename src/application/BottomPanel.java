@@ -1,6 +1,8 @@
 package application;
 
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.RowConstraints;
 
 public class BottomPanel extends GridPane
 {
@@ -11,5 +13,8 @@ public class BottomPanel extends GridPane
         // Arbitrary for now.
         this.setPrefHeight(300);
         this.setPrefWidth(1000);
+        this.getColumnConstraints().add(new ColumnConstraints(100));
+        this.getRowConstraints().add(new RowConstraints(50));
+        this.add(new FireAlarm(),0,0);
     }
 }
