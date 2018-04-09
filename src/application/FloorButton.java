@@ -13,17 +13,12 @@ class FloorButton extends ElevatorButton
         String onPath = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/" + floorNumber.toDigit() + "ON.png";
         String offPath = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/" + floorNumber.toDigit() + "OFF.png";
         super.setGraphic(onPath,offPath);
-        this.setOnAction((event) -> {
-            if(!m_On) {
-                this.setGraphic(onImg);
-                Engine.getMessagePump().sendMessage(new Message(SimGlobals.MANUAL_FLOOR_PRESS_ON, m_FloorNumber));
-            }
-            else  {
-                this.setGraphic(offImg);
-                Engine.getMessagePump().sendMessage(new Message(SimGlobals.MANUAL_FLOOR_PRESS_OFF, m_FloorNumber));
-            }
-            m_On = !m_On;
-
+        // On press quickly toggle the light so the user can actually tell they pressed the button.
+        // The light toggle holds no meaning behind it.
+        this.setOnMousePressed((event) -> { this.setGraphic(onImg); });
+        this.setOnMouseReleased((event) -> {
+            this.setGraphic(offImg);
+            Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.MANUAL_FLOOR_PRESS, m_FloorNumber));
         });
     }
 

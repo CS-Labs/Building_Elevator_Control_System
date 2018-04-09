@@ -13,7 +13,6 @@ public class SetUp implements ApplicationEntryPoint {
         System.out.println("Initialized");
         m_registerSimulationMessages();
         new ControlPanel();
-        //Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_LOGIC_ENTITY, new BuildingControl()));
         _scene.add(new BuildingControl());
         _scene.activateAll();
     }
@@ -25,14 +24,15 @@ public class SetUp implements ApplicationEntryPoint {
 
     private void m_registerSimulationMessages()
     {
-        Engine.getMessagePump().registerMessage(new Message(SimGlobals.MANUAL_FLOOR_PRESS_ON));
-        Engine.getMessagePump().registerMessage(new Message(SimGlobals.MANUAL_FLOOR_PRESS_OFF));
-        Engine.getMessagePump().registerMessage(new Message(SimGlobals.ALARM_ON));
-        Engine.getMessagePump().registerMessage(new Message(SimGlobals.ALARM_OFF));
-        Engine.getMessagePump().registerMessage(new Message(SimGlobals.CLOSE_DOORS_REQUEST_ON));
-        Engine.getMessagePump().registerMessage(new Message(SimGlobals.CLOSE_DOORS_REQUEST_OFF));
-        Engine.getMessagePump().registerMessage(new Message(SimGlobals.OPEN_DOORS_REQUEST_ON));
-        Engine.getMessagePump().registerMessage(new Message(SimGlobals.OPEN_DOORS_REQUEST_OFF));
+        Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.MANUAL_FLOOR_PRESS));
+        Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.ALARM_ON));
+        Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.ALARM_OFF));
+        Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.CHANGE_VIEW));
+        Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.LOCK_PANEL_UPDATE));
+        Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.KEY_LOCK_ACTIVATED));
+        Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.KEY_LOCK_DEACTIVATED));
+
+
     }
 
     public static void main(String[] args) {

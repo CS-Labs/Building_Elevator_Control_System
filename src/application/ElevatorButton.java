@@ -15,6 +15,7 @@ class ElevatorButton extends Button
         this.setStyle("-fx-background-radius: 57em; " + "-fx-min-width: 52px; "
                 + "-fx-min-height: 52px; " + "-fx-max-width: 52px; "
                 + "-fx-max-height: 52px;");
+
     }
 
     void setGraphic(String onImgPath, String offImgPath)

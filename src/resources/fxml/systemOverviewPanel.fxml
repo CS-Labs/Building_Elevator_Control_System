@@ -17,20 +17,16 @@
             <Font size="25.0" />
           </font>
         </Label>
-        <RadioButton fx:id="viewOne" layoutX="2.0" layoutY="52.0" mnemonicParsing="false" prefWidth="153.0" text="Elevator One View" textFill="#ffffff"/>
-        <RadioButton fx:id="viewTwo" layoutX="2.0" layoutY="80.0" mnemonicParsing="false" prefWidth="153.0" text="Elevator Two View" textFill="#ffffff"/>
-        <RadioButton fx:id="viewThree" layoutX="2.0" layoutY="106.0" mnemonicParsing="false" prefWidth="170.0" text="Elevator Three View" textFill="#ffffff"/>
-        <RadioButton fx:id="viewFour" layoutX="2.0" layoutY="135.0" mnemonicParsing="false" prefWidth="153.0" text="Elevator Four View" textFill="#ffffff"/>
-        <RadioButton fx:id="overview" layoutX="2.0" layoutY="163.0" mnemonicParsing="false" prefWidth="153.0" text="Building Overview" textFill="#ffffff"/>
+        <RadioButton fx:id="viewOne" userData="viewOne" layoutX="2.0" layoutY="52.0" mnemonicParsing="false" prefWidth="153.0" text="Elevator One View" textFill="#ffffff"/>
+        <RadioButton fx:id="viewTwo" userData="viewTwo" layoutX="2.0" layoutY="80.0" mnemonicParsing="false" prefWidth="153.0" text="Elevator Two View" textFill="#ffffff"/>
+        <RadioButton fx:id="viewThree" userData="viewThree" layoutX="2.0" layoutY="106.0" mnemonicParsing="false" prefWidth="170.0" text="Elevator Three View" textFill="#ffffff"/>
+        <RadioButton fx:id="viewFour" userData="viewFour" layoutX="2.0" layoutY="135.0" mnemonicParsing="false" prefWidth="153.0" text="Elevator Four View" textFill="#ffffff"/>
+        <RadioButton fx:id="overview" userData="overview" layoutX="2.0" layoutY="163.0" mnemonicParsing="false" prefWidth="153.0" text="Building Overview" textFill="#ffffff"/>
       </children>
     </Pane>
-    <Pane layoutX="726.0" layoutY="25.0" prefHeight="200.0" prefWidth="174.0">
+    <Pane fx:id="lockPane" layoutX="726.0" layoutY="25.0" prefHeight="200.0" prefWidth="174.0">
       <children>
-        <RadioButton fx:id="lockOne" layoutX="2.0" layoutY="52.0" mnemonicParsing="false" prefWidth="153.0" text="Elevator One" textFill="#ffffff"/>
         <Label fx:id="lockLabel" layoutX="14.0" layoutY="14.0" prefWidth="139.0" text="Button Locker" textAlignment="CENTER" underline="true" textFill="#ffffff"/>
-        <RadioButton fx:id="lockTwo" layoutX="2.0" layoutY="80.0" mnemonicParsing="false" text="Elevator Two" textFill="#ffffff"/>
-        <RadioButton fx:id="lockThree" layoutX="2.0" layoutY="106.0" mnemonicParsing="false" text="Elevator Three" textFill="#ffffff"/>
-        <RadioButton fx:id="lockFour" layoutX="2.0" layoutY="135.0" mnemonicParsing="false" text="Elevator Four" textFill="#ffffff"/>
       </children>
     </Pane>
     <Pane layoutX="325.0" layoutY="5.0" prefHeight="200.0" prefWidth="273.0">
