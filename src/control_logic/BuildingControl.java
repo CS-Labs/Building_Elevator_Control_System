@@ -6,6 +6,7 @@ import application.SystemOverviewPanel;
 import engine.LogicEntity;
 import engine.RenderEntity;
 import engine.SceneManager;
+import named_types.CabinNumber;
 import named_types.DoorSideTypes;
 import named_types.FloorNumber;
 import named_types.ViewTypes;
@@ -72,6 +73,7 @@ public class BuildingControl implements LogicEntity
         m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.LEFT,400,80,5,100,250)); // Left inside door.
         m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.RIGHT,500,80,5,100,250)); // Right inside door.
         m_ElevatorViewMng.add(new ElevatorButtonPanelRenderer(600,107,3,80,150));
+        m_ElevatorViewMng.add(new ElevatorNumberSignRenderer(new CabinNumber(1), 300,0,3,100,35));
     }
 
 
@@ -86,7 +88,6 @@ public class BuildingControl implements LogicEntity
         FloorSignRenderer(FloorNumber floor, int x, int y, int d, int w, int h)
         {
             m_Floor = floor;
-            setTexture("/resources/img/CCTV_Views/elevator/cabin/floorNumbers/floor" + floor.get() +".png");
             setLocationXYDepth(x, y, d);
             setWidthHeight(w, h);
         }
@@ -102,10 +103,18 @@ public class BuildingControl implements LogicEntity
      */
     class ElevatorNumberSignRenderer extends RenderEntity
     {
+        CabinNumber m_CabinNumber;
+        ElevatorNumberSignRenderer(CabinNumber cabinNumber, int x, int y, int d, int w, int h)
+        {
+            m_CabinNumber = cabinNumber;
+            setLocationXYDepth(x, y, d);
+            setWidthHeight(w, h);
+        }
+
+        public void setCabinNumber(CabinNumber cabinNumber) {m_CabinNumber = cabinNumber;}
 
         @Override
-        public void pulse(double deltaSeconds) {
-
+        public void pulse(double deltaSeconds) {setTexture("/resources/img/CCTV_Views/elevator/cabin/cabinNumbers/cabin" + m_CabinNumber.get() +".png");
         }
     }
 
