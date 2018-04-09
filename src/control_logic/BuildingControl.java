@@ -11,6 +11,9 @@ import named_types.FloorNumber;
 import named_types.ViewTypes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 public class BuildingControl implements LogicEntity
 {
@@ -68,7 +71,7 @@ public class BuildingControl implements LogicEntity
         m_ElevatorViewMng.add(new InsideCabinRenderer(300,0,4,400,400));
         m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.LEFT,400,80,5,100,250)); // Left inside door.
         m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.RIGHT,500,80,5,100,250)); // Right inside door.
-        m_ElevatorViewMng.add(new ElevatorButtonPanelRenderer(590,90,2,80,150));
+        m_ElevatorViewMng.add(new ElevatorButtonPanelRenderer(600,107,3,80,150));
     }
 
 
@@ -156,18 +159,21 @@ public class BuildingControl implements LogicEntity
     class ElevatorButtonPanelRenderer extends RenderEntity
     {
         private ArrayList<ElevatorButtonRenderer> buttonRenderers = new ArrayList<>();
+        private List<Integer> xLocs = Arrays.asList(607,632);
+
         ElevatorButtonPanelRenderer(int x, int y, int d, int w, int h)
         {
             setTexture("/resources/img/CCTV_Views/elevator/elevatorFloorPanel/elevatorButtonPanel.png");
             // Create the buttons inside the panel.
-            for(int i = 1; i <= 10; i++)
-            {
-                ElevatorButtonRenderer elevatorButton = new ElevatorButtonRenderer(i,10,10+10*i,2,10,10);
+            Iterator<Integer> xLocs = Arrays.asList(617,642,617,642,617,642,617,642,617,642).iterator();
+            Iterator<Integer> yLocs = Arrays.asList(220,220,195,195,170,170,145,145,120,120).iterator();
+            int buttonNum = 1;
+            while(xLocs.hasNext() && yLocs.hasNext()) {
+                ElevatorButtonRenderer elevatorButton = new ElevatorButtonRenderer(buttonNum, xLocs.next(), yLocs.next(), 2, 20 ,20);
                 m_ElevatorViewMng.add(elevatorButton);
                 buttonRenderers.add(elevatorButton);
+                buttonNum++;
             }
-          //  ElevatorButtonRenderer elevatorButton =;
-            m_ElevatorViewMng.add( new ElevatorButtonRenderer(1,620,110,2,20,20));
             setLocationXYDepth(x, y, d);
             setWidthHeight(w, h);
         }
@@ -197,6 +203,8 @@ public class BuildingControl implements LogicEntity
 
         public void turnOn() {m_CurrentTexture = m_OnTexture;}
         public void turnOff() {m_CurrentTexture = m_OffTexture;}
+
+
 
         @Override
         public void pulse(double deltaSeconds) {setTexture(m_CurrentTexture);}
