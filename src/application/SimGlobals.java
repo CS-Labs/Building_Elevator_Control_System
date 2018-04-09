@@ -10,4 +10,7 @@ public class SimGlobals
     public static final String CLOSE_DOORS_REQUEST_OFF = "Close Doors Request Off.";
     public static final String OPEN_DOORS_REQUEST_ON = "Open Doors Request On.";
     public static final String OPEN_DOORS_REQUEST_OFF = "Close Doors Request Off.";
+
+    public static final int MAXFLOOR = 10;
+    public static final int MINFLOOR = 1;
 }

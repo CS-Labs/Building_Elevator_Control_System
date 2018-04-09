@@ -23,7 +23,6 @@ public class SetUp implements ApplicationEntryPoint {
 
     }
 
-
     private void m_registerSimulationMessages()
     {
         Engine.getMessagePump().registerMessage(new Message(SimGlobals.MANUAL_FLOOR_PRESS_ON));
