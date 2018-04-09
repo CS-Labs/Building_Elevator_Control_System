@@ -5,6 +5,7 @@ import engine.*;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.layout.GridPane;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,9 +25,9 @@ public class ControlPanel extends GridPane
         GridPane constantPanel = m_SetupConstantPanel();
         // TODO: Create panel that is specific to the system overview here.
         //m_SystemOverviewMgr.add();
-        m_SystemOverviewMgr.add(constantPanel);
         m_ElevatorViewMgr.add(new ElevatorPanel(700,0));
-        m_ElevatorViewMgr.add(constantPanel);
+        // Note, the bottom panel never changes so we don't need to add it to a scene manager.
+        Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, constantPanel));
         m_ElevatorViewMgr.activateAll();
         m_signalInterests();
     }
@@ -94,6 +95,16 @@ public class ControlPanel extends GridPane
         return snapShot;
     }
 
+    /*
+        Updates what portions of the control panel are in view.
+        This does NOT update what animations are in view this job is up to
+        the building control.
+     */
+    private void m_UpdateControlPanelView(ViewTypes previousView)
+    {
+        if(previousView == ViewTypes.OVERVIEW && m_CurrentView != ViewTypes.OVERVIEW) switchToCabinView();
+        if(previousView != ViewTypes.OVERVIEW && m_CurrentView == ViewTypes.OVERVIEW) switchToOverView();
+    }
 
 
     class Helper implements MessageHandler
@@ -113,7 +124,9 @@ public class ControlPanel extends GridPane
                     m_AlarmOn = false;
                     break;
                 case ControlPanelGlobals.CHANGE_VIEW:
+                    ViewTypes previousView = m_CurrentView;
                     m_CurrentView = (ViewTypes) message.getMessageData();
+                    m_UpdateControlPanelView(previousView);
                     break;
                 case ControlPanelGlobals.LOCK_PANEL_UPDATE:
                     m_LockedPanels = (ArrayList<Boolean>) message.getMessageData();

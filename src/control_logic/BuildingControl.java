@@ -1,5 +1,6 @@
 package control_logic;
 
+import application.ControlPanel;
 import engine.LogicEntity;
 import engine.SceneManager;
 
@@ -13,9 +14,7 @@ public class BuildingControl implements LogicEntity
     {
         m_Cabin = new Cabin(300,0,4,400,400);
         m_DoorControl = new DoorControl();
-        //m_Cabin.addToWorld();
         m_DoorControl.openDoors();
-        //Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_LOGIC_ENTITY, m_DoorControl));
         m_Scene.add(m_Cabin);
         m_Scene.add(m_DoorControl);
         m_Scene.activateAll();
