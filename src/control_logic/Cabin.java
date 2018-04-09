@@ -1,5 +1,6 @@
 package control_logic;
 
+import named_types.FloorNumber;
 import engine.RenderEntity;
 
 class Cabin extends RenderEntity
@@ -12,9 +13,15 @@ class Cabin extends RenderEntity
         setTexture("/resources/img/CCTV_Views/elevator/cabin/cabinFrame.png");
         setLocationXYDepth(x, y, d);
         setWidthHeight(w, h);
-        m_FloorAlignment = new FloorAlignment(FloorNumberTypes.ONE);
+        m_FloorAlignment = new FloorAlignment(new FloorNumber(1));
     }
 
     @Override
     public void pulse(double deltaSeconds) {}
+
+    // TODO: Implement me.
+    public CabinStatus getStatus() {return null;}
+    public void lockPanel() {}
+    public void unlockPanel() {}
+    public void setDestination(FloorNumber floor){}
 }

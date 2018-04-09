@@ -1,11 +1,14 @@
 package control_logic;
 
+import named_types.CabinNumber;
+import named_types.FloorNumber;
+
 public class ArrivalSignals{
     private boolean active;
-    private int floor;
-    private int cabinNumber;
+    private FloorNumber floor;
+    private CabinNumber cabinNumber;
 
-    public ArrivalSignals(int floor, int cabinNumber){
+    public ArrivalSignals(FloorNumber floor, CabinNumber cabinNumber){
         this.active = false;
         this.floor = floor;
         this.cabinNumber = cabinNumber;
@@ -19,11 +22,11 @@ public class ArrivalSignals{
         this.active = state;
     }
 
-    public int getFloor(){
+    public FloorNumber getFloor(){
         return this.floor;
     }
 
-    public int getCabinNumber(){
+    public CabinNumber getCabinNumber(){
         return this.cabinNumber;
     }
 

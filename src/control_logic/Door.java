@@ -1,5 +1,8 @@
 package control_logic;
 
+import named_types.DoorAnimationTypes;
+import named_types.DoorStatusType;
+import named_types.SideTypes;
 import engine.RenderEntity;
 
 public class Door extends RenderEntity
@@ -11,7 +14,7 @@ public class Door extends RenderEntity
     // Need to be determined, these are dependent on the door being either the right or left door.
     private double m_OpenBound;
     private double m_ClosedBound;
-    private SideTypes  m_Side;
+    private SideTypes m_Side;
 
     Door(SideTypes door, int x, int y, int d, int w, int h)
     {

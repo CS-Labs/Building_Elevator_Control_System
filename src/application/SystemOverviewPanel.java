@@ -1,5 +1,6 @@
 package application;
 
+import named_types.ViewTypes;
 import engine.Engine;
 import engine.Message;
 import javafx.fxml.FXML;
