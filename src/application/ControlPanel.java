@@ -33,8 +33,6 @@ public class ControlPanel extends GridPane
         m_signalInterests();
     }
 
-    // The reason the control panel is broken up into three different components is because two of them
-    // are invisible during the overview mode.
     public void switchToOverView()
     {
         m_SystemOverviewMgr.activateAll();
@@ -96,17 +94,6 @@ public class ControlPanel extends GridPane
         return snapShot;
     }
 
-    /*
-        Updates what portions of the control panel are in view.
-        This does NOT update what animations are in view this job is up to
-        the building control.
-     */
-    private void m_UpdateControlPanelView(ViewTypes previousView)
-    {
-        if(previousView == ViewTypes.OVERVIEW && m_CurrentView != ViewTypes.OVERVIEW) switchToCabinView();
-        if(previousView != ViewTypes.OVERVIEW && m_CurrentView == ViewTypes.OVERVIEW) switchToOverView();
-    }
-
 
     class Helper implements MessageHandler
     {
@@ -125,9 +112,7 @@ public class ControlPanel extends GridPane
                     m_AlarmOn = false;
                     break;
                 case ControlPanelGlobals.CHANGE_VIEW:
-                    ViewTypes previousView = m_CurrentView;
                     m_CurrentView = (ViewTypes) message.getMessageData();
-                    m_UpdateControlPanelView(previousView);
                     break;
                 case ControlPanelGlobals.LOCK_PANEL_UPDATE:
                     m_LockedPanels = (ArrayList<Boolean>) message.getMessageData();

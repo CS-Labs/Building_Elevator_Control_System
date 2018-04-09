@@ -2,29 +2,73 @@ package control_logic;
 
 import application.ControlPanel;
 import application.ControlPanelSnapShot;
+import application.SystemOverviewPanel;
 import engine.LogicEntity;
 import engine.RenderEntity;
 import engine.SceneManager;
+import named_types.DoorSideTypes;
 import named_types.FloorNumber;
+import named_types.ViewTypes;
 
 public class BuildingControl implements LogicEntity
 {
-    private SceneManager m_Scene = new SceneManager();
+    private SceneManager m_SystemOverviewMgr = new SceneManager();
+    private SceneManager m_ElevatorViewMng = new SceneManager();
     private ControlPanelSnapShot m_ControlPanelSnapShot;
     private ControlPanel m_ControlPanel;
+    private ViewTypes m_PreviousView = ViewTypes.ELEVATOR_ONE; //TODO: What is our starting view.
     public BuildingControl(ControlPanel controlPanel)
     {
         m_ControlPanel = controlPanel;
-        m_Scene.activateAll();
-
+        m_ConstructScenes();
+        // TODO: What scene do we want to start in? What ever we choose update below.
+        m_ElevatorViewMng.activateAll();
     }
 
     @Override
     public void process()
     {
         m_ControlPanelSnapShot = m_ControlPanel.getSnapShot(); // Get latest snap-shot.
+        // Potentially update views.
+        m_UpdateViewCheck(m_ControlPanelSnapShot.currentView);
         // TODO: Do something with the snap-shot.
+
     }
+
+    private void m_UpdateViewCheck(ViewTypes updatedView)
+    {
+        if(updatedView == m_PreviousView) return;
+        if(updatedView == ViewTypes.OVERVIEW && m_PreviousView != ViewTypes.OVERVIEW) m_SwitchToOverView();
+        if(updatedView != ViewTypes.OVERVIEW && m_PreviousView == ViewTypes.OVERVIEW) m_SwitchToCabinView();
+        m_PreviousView = updatedView;
+    }
+
+    private void m_SwitchToCabinView()
+    {
+        m_SystemOverviewMgr.deactivateAll();
+        m_ElevatorViewMng.activateAll();
+        m_ControlPanel.switchToCabinView();
+    }
+    private void m_SwitchToOverView()
+    {
+        m_SystemOverviewMgr.activateAll();
+        m_ElevatorViewMng.deactivateAll();
+        m_ControlPanel.switchToOverView();
+    }
+
+
+    private void m_ConstructScenes()
+    {
+        // Add all render entities that go in the system overview.
+
+        // Add all render entities that go in the single elevator view.
+        m_ElevatorViewMng.add(new FloorSignRenderer(new FloorNumber(1),445,20,3,100,40));
+        m_ElevatorViewMng.add(new InsideCabinRenderer(300,0,4,400,400));
+        m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.LEFT,400,80,5,100,250)); // Left inside door.
+        m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.RIGHT,500,80,5,100,250)); // Right inside door.
+
+    }
+
 
     // All animations are now rendered at the top level. (Here).
 
@@ -47,6 +91,19 @@ public class BuildingControl implements LogicEntity
         @Override
         public void pulse(double deltaSeconds) { setTexture("/resources/img/CCTV_Views/elevator/cabin/floorNumbers/floor" + m_Floor.get() +".png"); }
     }
+
+    /*
+        Renders a sign in the cabin that display the cabin number 1-4.
+     */
+    class ElevatorNumberSignRenderer extends RenderEntity
+    {
+
+        @Override
+        public void pulse(double deltaSeconds) {
+
+        }
+    }
+
 
     /*
          Renders inside of the cabin.
@@ -74,12 +131,12 @@ public class BuildingControl implements LogicEntity
         double m_XPos;
         double m_YPos;
         double m_Depth;
-        DoorPanelRenderer(int x, int y, int d, int w, int h)
+        DoorPanelRenderer(DoorSideTypes doorSide, int x, int y, int d, int w, int h)
         {
             m_XPos = x;
             m_YPos = y;
             m_Depth = d;
-            setTexture("/resources/img/CCTV_Views/elevator/cabin/cabinFrame.png");
+            setTexture("/resources/img/CCTV_Views/elevator/cabin/" + ((doorSide == DoorSideTypes.LEFT) ? "left" : "right") + "Door.png");
             setLocationXYDepth(m_XPos, m_YPos, m_Depth);
             setWidthHeight(w, h);
         }
