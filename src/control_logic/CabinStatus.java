@@ -15,8 +15,7 @@ class CabinStatus
     CabinNumber getCabinNumber() {return null;}
     FloorNumber getDestination() {return null;}
     FloorNumber getLastFloor() {return null;}
-    // Hashset of what??
-    HashSet<Integer> getAllActiveRequests() {return null;}
+    HashSet<CabinNumber> getAllActiveRequests() {return null;}
 
 
 }

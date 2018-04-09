@@ -6,10 +6,7 @@ import application.SystemOverviewPanel;
 import engine.LogicEntity;
 import engine.RenderEntity;
 import engine.SceneManager;
-import named_types.CabinNumber;
-import named_types.DoorSideTypes;
-import named_types.FloorNumber;
-import named_types.ViewTypes;
+import named_types.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,12 +65,19 @@ public class BuildingControl implements LogicEntity
         // Add all render entities that go in the system overview.
 
         // Add all render entities that go in the single elevator view.
-        m_ElevatorViewMng.add(new FloorSignRenderer(new FloorNumber(1),445,20,3,100,40));
-        m_ElevatorViewMng.add(new InsideCabinRenderer(300,0,4,400,400));
-        m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.LEFT,400,80,5,100,250)); // Left inside door.
-        m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.RIGHT,500,80,5,100,250)); // Right inside door.
-        m_ElevatorViewMng.add(new ElevatorButtonPanelRenderer(600,107,3,80,150));
-        m_ElevatorViewMng.add(new ElevatorNumberSignRenderer(new CabinNumber(1), 300,0,3,100,35));
+        m_ElevatorViewMng.add(new FloorSignRenderer(new FloorNumber(1),745,20,3,100,40));
+        m_ElevatorViewMng.add(new CabinBackgroundRenderer(Orientation.INSIDE,600,0,4,400,400));
+        m_ElevatorViewMng.add(new CabinBackgroundRenderer(Orientation.OUTSIDE, 0,0,4,400,400));
+        m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.LEFT,700,80,5,100,250)); // Left inside door.
+        m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.RIGHT,800,80,5,100,250)); // Right inside door.
+        m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.LEFT, 100,80,5,100,250)); // Left outside door.
+        m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.RIGHT, 200, 80, 5, 100, 250)); // Right outside door.
+        m_ElevatorViewMng.add(new ElevatorButtonPanelRenderer(900,107,3,80,150));
+        m_ElevatorViewMng.add(new ElevatorNumberSignRenderer(new CabinNumber(1), 600,0,3,100,35));
+        m_ElevatorViewMng.add(new LobbyFloorNumberSignRenderer(new FloorNumber(1), 0,0,3,100,35));
+        m_ElevatorViewMng.add(new ArrowButtonRenderer(ArrowButtonStates.NOTHING_PRESSED, 50,150,3,35,75));
+        m_ElevatorViewMng.add(new ArrivalLightRenderer(ArrivalLightStates.NO_ARRIVAL, 175,40,3,50,20));
+
     }
 
 
@@ -118,17 +122,37 @@ public class BuildingControl implements LogicEntity
         }
     }
 
+    class LobbyFloorNumberSignRenderer extends RenderEntity
+    {
+        FloorNumber m_FloorNumber;
+        LobbyFloorNumberSignRenderer(FloorNumber floorNumber, int x, int y, int d, int w, int h)
+        {
+            m_FloorNumber = floorNumber;
+            setLocationXYDepth(x, y, d);
+            setWidthHeight(w, h);
+        }
+
+        public void setFloorNumber(FloorNumber floorNumber) {m_FloorNumber = floorNumber;}
+
+        @Override
+        public void pulse(double deltaSeconds) {
+            setTexture("/resources/img/CCTV_Views/outside/floorLobbyNumbers/floor" + m_FloorNumber.get() + ".png");
+        }
+    }
+
+
 
     /*
          Renders inside of the cabin.
          Note: Pulse should not be implemented, the image never changes.
      */
-    class InsideCabinRenderer extends RenderEntity
+    class CabinBackgroundRenderer extends RenderEntity
     {
 
-        InsideCabinRenderer(int x, int y, int d, int w, int h)
+        CabinBackgroundRenderer(Orientation org, int x, int y, int d, int w, int h)
         {
-            setTexture("/resources/img/CCTV_Views/elevator/cabin/cabinFrame.png");
+            String texture = "/resources/img/CCTV_Views/" + ((org == Orientation.INSIDE) ? "elevator/cabin/cabinFrame.png" : "outside/outside.png");
+            setTexture(texture);
             setLocationXYDepth(x, y, d);
             setWidthHeight(w, h);
         }
@@ -168,13 +192,12 @@ public class BuildingControl implements LogicEntity
     class ElevatorButtonPanelRenderer extends RenderEntity
     {
         private ArrayList<ElevatorButtonRenderer> buttonRenderers = new ArrayList<>();
-        private List<Integer> xLocs = Arrays.asList(607,632);
 
         ElevatorButtonPanelRenderer(int x, int y, int d, int w, int h)
         {
             setTexture("/resources/img/CCTV_Views/elevator/elevatorFloorPanel/elevatorButtonPanel.png");
             // Create the buttons inside the panel.
-            Iterator<Integer> xLocs = Arrays.asList(617,642,617,642,617,642,617,642,617,642).iterator();
+            Iterator<Integer> xLocs = Arrays.asList(917,942,917,942,917,942,917,942,917,942).iterator();
             Iterator<Integer> yLocs = Arrays.asList(220,220,195,195,170,170,145,145,120,120).iterator();
             int buttonNum = 1;
             while(xLocs.hasNext() && yLocs.hasNext()) {
@@ -226,21 +249,39 @@ public class BuildingControl implements LogicEntity
      */
     class ArrivalLightRenderer extends RenderEntity
     {
-        @Override
-        public void pulse(double deltaSeconds) {
-
+        ArrivalLightStates m_CurrentArrivalLightState;
+        ArrivalLightRenderer(ArrivalLightStates startState, int x, int y, int d, int w, int h)
+        {
+            m_CurrentArrivalLightState = startState;
+            setLocationXYDepth(x, y, d);
+            setWidthHeight(w, h);
         }
+
+        public void setArrivalLightState(ArrivalLightStates arrivalLightState) {m_CurrentArrivalLightState = arrivalLightState;}
+
+        @Override
+        public void pulse(double deltaSeconds) {setTexture("resources/img/CCTV_Views/outside/arrivalLights/" + m_CurrentArrivalLightState.toString());}
     }
 
     /*
-        Renders the up/down arrows in the outside view.
+        Renders the up/down arrows in the outside view. There is only one of these per floor so
+        regardless of what elevator your viewing the outside of on a floor it should display the same
+        up/down arrow.
      */
     class ArrowButtonRenderer extends RenderEntity
     {
-        @Override
-        public void pulse(double deltaSeconds) {
-
+        ArrowButtonStates m_CurrentArrowButton;
+        ArrowButtonRenderer(ArrowButtonStates startState, int x, int y, int d, int w, int h)
+        {
+            m_CurrentArrowButton = startState;
+            setLocationXYDepth(x, y, d);
+            setWidthHeight(w, h);
         }
+
+        public void setArrowButtonState(ArrowButtonStates arrowButtonState) {m_CurrentArrowButton = arrowButtonState;}
+
+        @Override
+        public void pulse(double deltaSeconds) {setTexture("resources/img/CCTV_Views/elevator/cabin/directionLights/" + m_CurrentArrowButton.toString());}
     }
 
     /*
@@ -249,6 +290,7 @@ public class BuildingControl implements LogicEntity
      */
     class OutsideCabinRenderer extends RenderEntity
     {
+
 
         @Override
         public void pulse(double deltaSeconds) {
