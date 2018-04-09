@@ -15,4 +15,9 @@ public class CabinNumber
         CabinNumber cn = (CabinNumber) obj;
         return (cn.m_CabinNumber == this.m_CabinNumber);
     }
+
+    @Override
+    public int hashCode() {
+        return this.get();
+    }
 }
