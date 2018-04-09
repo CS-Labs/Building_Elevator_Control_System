@@ -1,26 +1,20 @@
 package control_logic;
 
 import application.ControlPanel;
+import application.ControlPanelSnapShot;
 import engine.LogicEntity;
 import engine.RenderEntity;
 import engine.SceneManager;
-import application.ControlPanelSnapShot;
+import named_types.FloorNumber;
+
 public class BuildingControl implements LogicEntity
 {
-
-    private Cabin m_Cabin;
-    private DoorControl m_DoorControl;
     private SceneManager m_Scene = new SceneManager();
     private ControlPanelSnapShot m_ControlPanelSnapShot;
     private ControlPanel m_ControlPanel;
     public BuildingControl(ControlPanel controlPanel)
     {
         m_ControlPanel = controlPanel;
-        m_Cabin = new Cabin(300,0,4,400,400);
-        m_DoorControl = new DoorControl();
-        m_DoorControl.openDoors();
-        m_Scene.add(m_Cabin);
-        m_Scene.add(m_DoorControl);
         m_Scene.activateAll();
 
     }
@@ -39,10 +33,19 @@ public class BuildingControl implements LogicEntity
      */
     class FloorSignRenderer extends RenderEntity
     {
-        @Override
-        public void pulse(double deltaSeconds) {
-
+        private FloorNumber m_Floor;
+        FloorSignRenderer(FloorNumber floor, int x, int y, int d, int w, int h)
+        {
+            m_Floor = floor;
+            setTexture("/resources/img/CCTV_Views/elevator/cabin/floorNumbers/floor" + floor.get() +".png");
+            setLocationXYDepth(x, y, d);
+            setWidthHeight(w, h);
         }
+
+        public void updateFloorNumber(FloorNumber floorNumber) {m_Floor = floorNumber;}
+
+        @Override
+        public void pulse(double deltaSeconds) { setTexture("/resources/img/CCTV_Views/elevator/cabin/floorNumbers/floor" + m_Floor.get() +".png"); }
     }
 
     /*
@@ -52,33 +55,41 @@ public class BuildingControl implements LogicEntity
     class InsideCabinRenderer extends RenderEntity
     {
 
+        InsideCabinRenderer(int x, int y, int d, int w, int h)
+        {
+            setTexture("/resources/img/CCTV_Views/elevator/cabin/cabinFrame.png");
+            setLocationXYDepth(x, y, d);
+            setWidthHeight(w, h);
+        }
+
         @Override
         public void pulse(double deltaSeconds) {}
     }
 
     /*
-        Renders one of the inside door panels.
+        Renders one single door panel, use this for inside and outside doors.
      */
-    class InsideDoorPanelRenderer extends RenderEntity
+    class DoorPanelRenderer extends RenderEntity
     {
+        double m_XPos;
+        double m_YPos;
+        double m_Depth;
+        DoorPanelRenderer(int x, int y, int d, int w, int h)
+        {
+            m_XPos = x;
+            m_YPos = y;
+            m_Depth = d;
+            setTexture("/resources/img/CCTV_Views/elevator/cabin/cabinFrame.png");
+            setLocationXYDepth(m_XPos, m_YPos, m_Depth);
+            setWidthHeight(w, h);
+        }
+
+        public void updateXLocation(int x) {m_XPos = x;}
 
         @Override
-        public void pulse(double deltaSeconds) {
-
-        }
+        public void pulse(double deltaSeconds) { setLocationXYDepth(m_XPos, m_YPos, m_Depth); }
     }
 
-    /*
-        Renders one of the outside door panels.
-     */
-    class OutsideDoorPanelRenderer extends RenderEntity
-    {
-
-        @Override
-        public void pulse(double deltaSeconds) {
-
-        }
-    }
 
     /*
         Renders the elevator button panel (not the managers one).
