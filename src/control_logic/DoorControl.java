@@ -1,7 +1,9 @@
 package control_logic;
 
+import named_types.*;
 import engine.SceneManager;
 import engine.LogicEntity;
+import javafx.util.Pair;
 
 class DoorControl implements LogicEntity {
     private Door m_LeftDoor;
@@ -32,9 +34,17 @@ class DoorControl implements LogicEntity {
     }
 
 
+    // TODO Implement me
     @Override
     public void process() {
         if(m_LeftDoor.getCurrentDoorMotion() == DoorStatusType.OPENED) closeDoors();
         if(m_LeftDoor.getCurrentDoorMotion() == DoorStatusType.CLOSED) openDoors();
     }
+    public void open(FloorNumber floorNumber, CabinNumber cabinNumber) {}
+    public void close(FloorNumber floorNumber, CabinNumber cabinNumber) {}
+    public DoorStatusType getStatus(FloorNumber floorNumber, Cabin cabinNumber) {return null;}
+    public Pair<Double, Double> getLocationOuterDoors(FloorNumber floorNumber, Cabin cabinNumber) {return null;}
+    public Pair<Double, Double> getLocationInnerDoors(FloorNumber floorNumber, Cabin cabinNumber) {return null;}
+
+
 }

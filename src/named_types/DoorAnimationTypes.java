@@ -1,4 +1,4 @@
-package control_logic;
+package named_types;
 
 public enum DoorAnimationTypes
 {

@@ -1,6 +1,12 @@
 package control_logic;
 
-public class ControlLogicGlobals {
-    public static final int MAXFLOOR = 10;
-    public static final int MINFLOOR = 1;
+import named_types.FloorNumber;
+
+public class ControlLogicGlobals
+{
+    // None-Messages.
+    public static final FloorNumber MAXFLOOR = new FloorNumber(10);
+    public static final FloorNumber MINFLOOR = new FloorNumber(1);
+
+    // Messages.
 }

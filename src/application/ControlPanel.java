@@ -1,6 +1,7 @@
 package application;
 
-import control_logic.FloorNumberTypes;
+import named_types.FloorNumber;
+import named_types.ViewTypes;
 import engine.*;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -115,7 +116,7 @@ public class ControlPanel extends GridPane
             switch(message.getMessageName()) {
 
                 case ControlPanelGlobals.MANUAL_FLOOR_PRESS:
-                    m_FloorsButtonsPressed.add(((FloorNumberTypes) message.getMessageData()).toDigit());
+                    m_FloorsButtonsPressed.add(((FloorNumber) message.getMessageData()).get());
                     break;
                 case ControlPanelGlobals.ALARM_ON:
                     m_AlarmOn = true;

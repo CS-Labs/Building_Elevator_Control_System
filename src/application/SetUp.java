@@ -12,8 +12,7 @@ public class SetUp implements ApplicationEntryPoint {
     public void init() {
         System.out.println("Initialized");
         m_registerSimulationMessages();
-        new ControlPanel();
-        _scene.add(new BuildingControl());
+        _scene.add(new BuildingControl(new ControlPanel()));
         _scene.activateAll();
     }
 
@@ -21,6 +20,7 @@ public class SetUp implements ApplicationEntryPoint {
     public void shutdown() {
 
     }
+
 
     private void m_registerSimulationMessages()
     {

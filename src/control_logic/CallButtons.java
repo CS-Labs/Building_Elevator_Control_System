@@ -1,21 +1,24 @@
 package control_logic;
 
 
-public class CallButtons{
-    private Direction direction;
-    private boolean isPressed;
-    private int floor;
+import named_types.DirectionType;
+import named_types.FloorNumber;
 
-    public CallButtons(int floor, Direction direction){
+public class CallButtons{
+    private DirectionType direction;
+    private boolean isPressed;
+    private FloorNumber floor;
+
+    public CallButtons(FloorNumber floor, DirectionType direction){
         this.isPressed =  false;
         this.direction = direction;
 
         // if floor != this.getFloor() you gave an invalid floor
-        if(floor >= ControlLogicGlobals.MINFLOOR && floor <= ControlLogicGlobals.MAXFLOOR) this.floor = floor;
-        else this.floor = 1;
+        if(floor.get() >= ControlLogicGlobals.MINFLOOR.get() && floor.get() <= ControlLogicGlobals.MAXFLOOR.get()) this.floor = floor;
+        else this.floor = new FloorNumber(1);
     }
 
-    public Direction getType(){
+    public DirectionType getType(){
         return this.direction;
     }
 
@@ -23,9 +26,7 @@ public class CallButtons{
         return this.isPressed;
     }
 
-    public int getFloor(){
-        return this.getFloor();
-    }
+    public FloorNumber getFloor(){ return this.floor; }
 
     // when this is used, if ispressed == false, either an elevator has arrived to this floor
     // or there is a firealarm. otherwise, don't change state.

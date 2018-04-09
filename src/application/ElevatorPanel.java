@@ -1,6 +1,6 @@
 package application;
 
-import control_logic.FloorNumberTypes;
+import named_types.FloorNumber;
 import javafx.geometry.Insets;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
@@ -40,7 +40,7 @@ class ElevatorPanel extends GridPane
         {
             for(int c: Arrays.asList(2,1))
             {
-                FloorButton fb = new FloorButton(FloorNumberTypes.values()[floors.poll()]);
+                FloorButton fb = new FloorButton(new FloorNumber(floors.poll()));
                 buttonPanel.add(fb,c,r);
             }
         }

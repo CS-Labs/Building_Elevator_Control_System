@@ -1,9 +1,11 @@
 package application;
 
+import named_types.ViewTypes;
+
 import java.util.ArrayList;
 
 // POD class.
-class ControlPanelSnapShot {
+public class ControlPanelSnapShot {
     // TODO: Once CallButtons is added this should return an array list of call buttons.
     public ArrayList<Integer> manualFloorsPresses;
     public boolean isAlarmOn;
