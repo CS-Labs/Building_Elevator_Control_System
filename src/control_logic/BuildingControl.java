@@ -10,6 +10,8 @@ import named_types.DoorSideTypes;
 import named_types.FloorNumber;
 import named_types.ViewTypes;
 
+import java.util.ArrayList;
+
 public class BuildingControl implements LogicEntity
 {
     private SceneManager m_SystemOverviewMgr = new SceneManager();
@@ -66,7 +68,7 @@ public class BuildingControl implements LogicEntity
         m_ElevatorViewMng.add(new InsideCabinRenderer(300,0,4,400,400));
         m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.LEFT,400,80,5,100,250)); // Left inside door.
         m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.RIGHT,500,80,5,100,250)); // Right inside door.
-
+        m_ElevatorViewMng.add(new ElevatorButtonPanelRenderer(590,90,2,80,150));
     }
 
 
@@ -153,12 +155,53 @@ public class BuildingControl implements LogicEntity
      */
     class ElevatorButtonPanelRenderer extends RenderEntity
     {
+        private ArrayList<ElevatorButtonRenderer> buttonRenderers = new ArrayList<>();
+        ElevatorButtonPanelRenderer(int x, int y, int d, int w, int h)
+        {
+            setTexture("/resources/img/CCTV_Views/elevator/elevatorFloorPanel/elevatorButtonPanel.png");
+            // Create the buttons inside the panel.
+            for(int i = 1; i <= 10; i++)
+            {
+                ElevatorButtonRenderer elevatorButton = new ElevatorButtonRenderer(i,10,10+10*i,2,10,10);
+                m_ElevatorViewMng.add(elevatorButton);
+                buttonRenderers.add(elevatorButton);
+            }
+          //  ElevatorButtonRenderer elevatorButton =;
+            m_ElevatorViewMng.add( new ElevatorButtonRenderer(1,620,110,2,20,20));
+            setLocationXYDepth(x, y, d);
+            setWidthHeight(w, h);
+        }
+
+        public void turnOnFloorButton(FloorNumber floorNumber) {buttonRenderers.get(floorNumber.get()).turnOn();}
+        public void turnOffFloorButton(FloorNumber floorNumber) {buttonRenderers.get(floorNumber.get()).turnOff();}
 
         @Override
         public void pulse(double deltaSeconds) {
 
         }
     }
+
+    class ElevatorButtonRenderer extends RenderEntity
+    {
+        private String m_OnTexture;
+        private String m_OffTexture;
+        private String m_CurrentTexture;
+        ElevatorButtonRenderer(int buttonNum, int x, int y, int d, int w, int h)
+        {
+            m_OnTexture = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/" + buttonNum + "ON.png";
+            m_OffTexture = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/" + buttonNum + "OFF.png";
+            m_CurrentTexture = m_OffTexture;
+            setLocationXYDepth(x, y, d);
+            setWidthHeight(w, h);
+        }
+
+        public void turnOn() {m_CurrentTexture = m_OnTexture;}
+        public void turnOff() {m_CurrentTexture = m_OffTexture;}
+
+        @Override
+        public void pulse(double deltaSeconds) {setTexture(m_CurrentTexture);}
+    }
+
 
     /*
         Renders the arrival light above the elevator door in
