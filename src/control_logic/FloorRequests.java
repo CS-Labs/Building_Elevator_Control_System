@@ -1,6 +1,5 @@
 package control_logic;
 
-import application.SimGlobals;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -11,17 +10,17 @@ public class FloorRequests{
     private static final int REQUESTPROB = 25;
 
     public FloorRequests(){
-        buttons.add(new CallButtons(SimGlobals.MINFLOOR, Direction.UP));
-        buttons.add(new CallButtons(SimGlobals.MINFLOOR, Direction.DOWN));
+        buttons.add(new CallButtons(ControlLogicGlobals.MINFLOOR, Direction.UP));
+        buttons.add(new CallButtons(ControlLogicGlobals.MINFLOOR, Direction.DOWN));
 
         // for all floors
-        for(int f = SimGlobals.MINFLOOR + 1; f <= (SimGlobals.MAXFLOOR - 1); f += 1){
+        for(int f = ControlLogicGlobals.MINFLOOR + 1; f <= (ControlLogicGlobals.MAXFLOOR - 1); f += 1){
             buttons.add(new CallButtons(f, Direction.UP));
             buttons.add(new CallButtons(f, Direction.DOWN));
         }
 
         // for all floors
-        for(int f = SimGlobals.MINFLOOR; f < SimGlobals.MAXFLOOR; f += 1){
+        for(int f = ControlLogicGlobals.MINFLOOR; f < ControlLogicGlobals.MAXFLOOR; f += 1){
             // for all cabins
             for(int c = 1; c < 4; c += 1) {
                 signals.add(new ArrivalSignals(f,c));

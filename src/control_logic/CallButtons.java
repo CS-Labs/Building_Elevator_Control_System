@@ -1,6 +1,5 @@
 package control_logic;
 
-import application.SimGlobals;
 
 public class CallButtons{
     private Direction direction;
@@ -12,7 +11,7 @@ public class CallButtons{
         this.direction = direction;
 
         // if floor != this.getFloor() you gave an invalid floor
-        if(floor >= SimGlobals.MINFLOOR && floor <= SimGlobals.MAXFLOOR) this.floor = floor;
+        if(floor >= ControlLogicGlobals.MINFLOOR && floor <= ControlLogicGlobals.MAXFLOOR) this.floor = floor;
         else this.floor = 1;
     }
 
