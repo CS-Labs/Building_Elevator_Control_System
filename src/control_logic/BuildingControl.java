@@ -38,7 +38,7 @@ public class BuildingControl implements LogicEntity
     }
 
     @Override
-    public void process()
+    public void process(double deltaSeconds)
     {
         ArrayList<CabinStatus> statuses = new ArrayList<>();
         ArrayList<FloorNumber> nextFloors = new ArrayList<>();

@@ -67,10 +67,12 @@ public class Engine implements PulseEntity, MessageHandler {
     private class LogicEntityTask implements Task {
         private LogicEntity _entity;
         private Engine _engine;
+        private long _startTimeNSec;
 
         LogicEntityTask(LogicEntity entity, Engine engine) {
             _entity = entity;
             _engine = engine;
+            _startTimeNSec = System.nanoTime();
         }
 
         LogicEntity getLogicEntity() {
@@ -79,8 +81,12 @@ public class Engine implements PulseEntity, MessageHandler {
 
         @Override
         public void execute() {
+            long currTimeNSec = System.nanoTime();
+            long elapsedNSec = currTimeNSec - _startTimeNSec;
+            double deltaSeconds = elapsedNSec / 1000000000.0;
+            _startTimeNSec = currTimeNSec;
             try {
-                _entity.process();
+                _entity.process(deltaSeconds);
             }
             catch (Exception e) {
                 e.printStackTrace();
