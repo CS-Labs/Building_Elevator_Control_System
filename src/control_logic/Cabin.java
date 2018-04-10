@@ -18,7 +18,7 @@ class Cabin
     public CabinStatus getStatus() {
         if(!lock) cabinrequests.getRequests();
         cabinstatus.setRequests(cabinrequests);
-        return this.cabinstatus;
+        return cabinstatus.getStatus();
     }
 
     public void lockPanel() {this.lock = true;}

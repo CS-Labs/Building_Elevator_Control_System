@@ -31,6 +31,17 @@ class CabinStatus
     public CabinNumber getCabinNumber() {return this.cabinNumber;}
     public FloorNumber getDestination() {return this.destination;}
     public FloorNumber getLastFloor() {return this.lastFloor;}
+
+    public CabinStatus getStatus() {
+        CabinStatus copy = new CabinStatus(this.getCabinNumber());
+
+        copy.setDestination(this.getDestination());
+        copy.setRequests(this.cabinrequests);
+        copy.setDirection(this.getDirection());
+        copy.setLastFloor(this.getLastFloor());
+        copy.setMotionStatus(this.getMotionStatus());
+        return copy;
+    }
 //    public HashSet<CabinNumber> getAllActiveRequests() { return cabinRequests.getRequests(); }
 
     public void setDirection(DirectionType direction){this.direction = direction;}
@@ -38,4 +49,5 @@ class CabinStatus
     public void setDestination(FloorNumber fn) {this.destination = fn;}
     public void setLastFloor(FloorNumber fn) {this.lastFloor = fn;}
     public void setRequests(CabinRequests cr){this.cabinrequests = cr;}
+
 }
