@@ -7,18 +7,17 @@ import named_types.Speed;
 class MotionControl implements LogicEntity
 {
 
-  private double cabinHeight = 30;//actual height of the cabin in pixels
   MotorSimulation motorSimulation = new MotorSimulation();
   FloorAlignment floorAlignment = new FloorAlignment();
   private FloorNumber floorToGoTO;
-  private int lastFloor = floorAlignment.alignedIndex(motorSimulation.getLocation(), cabinHeight);//should be 1 initially
+  private int lastFloor = floorAlignment.alignedIndex(motorSimulation.getLocation());//should be 1 initially
 
   //TODO Implement me
   @Override
   public void process(double deltaSeconds)
   {
     motorSimulation.update(deltaSeconds);
-    lastFloor = floorAlignment.alignedIndex(motorSimulation.getLocation(), cabinHeight);
+    lastFloor = floorAlignment.alignedIndex(motorSimulation.getLocation());
 
     //update the speed
     speedUpdate();

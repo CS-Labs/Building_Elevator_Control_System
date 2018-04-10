@@ -12,13 +12,14 @@ public class FloorAlignment
   private final int[] sensorLocations = {400, 360, 320, 280, 240, 200, 160, 120, 80, 40};
 
   private int lastFloor = 0;
+  private double cabinHeight = 30;//actual height of the cabin in pixels
 
   //TODO: Implement me
   FloorAlignment() {}
 
   // I think the cabin height should be a constant rather than a parameter passed
   //return the floor a sensor was last triggered. If the cabin is stopped then it will return that floor
-  public int alignedIndex(double topCabin, double cabinHeight)
+  public int alignedIndex(double topCabin)
   {
     double botCabin = topCabin + cabinHeight;
     int numSensors = sensorLocations.length;
