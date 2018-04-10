@@ -2,25 +2,45 @@ package control_logic;
 
 import named_types.FloorNumber;
 import engine.LogicEntity;
+import named_types.Speed;
 
 class MotionControl implements LogicEntity
 {
 
-  private double cabinHeight = 100;
+  private double cabinHeight = 30;//actual height of the cabin in pixels
   MotorSimulation motorSimulation = new MotorSimulation();
   FloorAlignment floorAlignment = new FloorAlignment();
+  private FloorNumber floorToGoTO;
   private int lastFloor = floorAlignment.alignedIndex(motorSimulation.getLocation(), cabinHeight);//should be 1 initially
 
   //TODO Implement me
   @Override
   public void process(double deltaSeconds)
   {
-    //don't know how to get delta seconds
-    //call motorSimulation.update(delta seconds);
-    //call lastFloor = floorAlignment.alignedIndex(motorSimulation.getLocation(), cabinHeight);
+    motorSimulation.update(deltaSeconds);
+    lastFloor = floorAlignment.alignedIndex(motorSimulation.getLocation(), cabinHeight);
+
+    //update the speed
+    speedUpdate();
   }
 
-  //why do we have FloorNumber?
+  private void speedUpdate()
+  {
+    //Mina's speed profile should go here
+    if(lastFloor > floorToGoTO.get())
+    {
+      motorSimulation.setSpeed(new Speed(0.5));
+    }
+    else if (lastFloor < floorToGoTO.get())
+    {
+      motorSimulation.setSpeed(new Speed(-0.5));
+    }
+    else
+    {
+      motorSimulation.setSpeed(new Speed(0));
+    }
+  }
+
   public FloorNumber getLastFloor()
   {
     //will return the last floor it has passed, if it is currently at a floor then it will return that floor
@@ -30,7 +50,7 @@ class MotionControl implements LogicEntity
   // TODO: 4/9/2018
   public void setDestination(FloorNumber floor)
   {
-
+    floorToGoTO = floor;
   }
 
   public boolean arrived()
