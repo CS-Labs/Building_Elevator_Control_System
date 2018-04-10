@@ -106,8 +106,14 @@ public class BuildingControl implements LogicEntity
         m_ElevatorViewMng.add(new ElevatorButtonPanelRenderer(900,107,3,80,150));
         m_ElevatorViewMng.add(new ElevatorNumberSignRenderer(new CabinNumber(1), 600,0,3,100,35));
         m_ElevatorViewMng.add(new LobbyFloorNumberSignRenderer(new FloorNumber(1), 0,0,3,100,35));
-        m_ElevatorViewMng.add(new ArrowButtonRenderer(ArrowButtonStates.NOTHING_PRESSED, 50,150,3,35,75));
         m_ElevatorViewMng.add(new ArrivalLightRenderer(ArrivalLightStates.NO_ARRIVAL, 175,40,3,50,20));
+
+        m_SystemOverviewMgr.add(new BuildingBackgroundRenderer(0,0,4,1000,400));
+        for(int i = 0; i < 10; i++) m_SystemOverviewMgr.add(new ArrowButtonRenderer(ArrowButtonStates.NOTHING_PRESSED, 950, i*40, 3, 32,38));
+        m_SystemOverviewMgr.add(new OutsideCabinRenderer(120,360,3,40,40));
+        m_SystemOverviewMgr.add(new OutsideCabinRenderer(260,360,3,40,40));
+        m_SystemOverviewMgr.add(new OutsideCabinRenderer(710,360,3,40,40));
+        m_SystemOverviewMgr.add(new OutsideCabinRenderer(855,360,3,40,40));
 
     }
 
@@ -321,14 +327,39 @@ public class BuildingControl implements LogicEntity
      */
     class OutsideCabinRenderer extends RenderEntity
     {
+        double m_XPos;
+        double m_YPos;
+        double m_Depth;
+        OutsideCabinRenderer(int x, int y, int d, int w, int h)
+        {
+            m_XPos = x;
+            m_YPos = y;
+            m_Depth = d;
+            setTexture("resources/img/Building_Overview/cabinOutside.png");
+            setLocationXYDepth(m_XPos, m_YPos, m_Depth);
+            setWidthHeight(w, h);
+        }
 
+        public void updateYLocation(int y) {m_YPos = y;}
 
         @Override
-        public void pulse(double deltaSeconds) {
-
-        }
+        public void pulse(double deltaSeconds) { setLocationXYDepth(m_XPos, m_YPos, m_Depth); }
     }
 
+
+    class BuildingBackgroundRenderer extends RenderEntity
+    {
+
+        BuildingBackgroundRenderer(int x, int y, int d, int w, int h)
+        {
+            setTexture("resources/img/background3.png");
+            setLocationXYDepth(x, y, d);
+            setWidthHeight(w, h);
+        }
+        @Override
+        public void pulse(double deltaSeconds) {
+        }
+    }
 
 
 
