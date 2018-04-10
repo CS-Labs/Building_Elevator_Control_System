@@ -13,8 +13,8 @@ class CabinStatus
     private CabinNumber cabinNumber;
     private FloorNumber destination;
     private FloorNumber lastFloor;
-    private CabinRequests cabinRequests = new CabinRequests();
-    // this needs to be initialized by cabin and sent to cabinStatus I believe
+    // this is only used to store from cabin and send to building control
+    private CabinRequests cabinrequests;
 
     CabinStatus(CabinNumber cn) {
         this.direction = DirectionType.NONE;
@@ -23,6 +23,7 @@ class CabinStatus
         this.lastFloor = new FloorNumber(1);
         this.cabinNumber = cn;
         this.moving = MotionStatusTypes.STOPPED;
+//        this.cabinRequests = new CabinRequests();
     }
 
     public DirectionType getDirection() {return this.direction;}
@@ -30,10 +31,11 @@ class CabinStatus
     public CabinNumber getCabinNumber() {return this.cabinNumber;}
     public FloorNumber getDestination() {return this.destination;}
     public FloorNumber getLastFloor() {return this.lastFloor;}
-    public HashSet<CabinNumber> getAllActiveRequests() { return cabinRequests.getRequests(); }
+//    public HashSet<CabinNumber> getAllActiveRequests() { return cabinRequests.getRequests(); }
 
     public void setDirection(DirectionType direction){this.direction = direction;}
-    public void getMotionStatus(MotionStatusTypes moving) {this.moving = moving;}
-    public void getDestination(FloorNumber fn) {this.destination = fn;}
-    public void getLastFloor(FloorNumber fn) {this.lastFloor = fn;}
+    public void setMotionStatus(MotionStatusTypes moving) {this.moving = moving;}
+    public void setDestination(FloorNumber fn) {this.destination = fn;}
+    public void setLastFloor(FloorNumber fn) {this.lastFloor = fn;}
+    public void setRequests(CabinRequests cr){this.cabinrequests = cr;}
 }
