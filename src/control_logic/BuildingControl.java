@@ -24,6 +24,10 @@ public class BuildingControl implements LogicEntity
     private ArrayList<Cabin> cabins = new ArrayList<>();
     private FloorRequests floorrequests = new FloorRequests();
     private boolean fire = false;
+    private DoorPanelRenderer m_InsideDoorLeft;
+    private DoorPanelRenderer m_InsideDoorRight;
+    private DoorPanelRenderer m_OutsideDoorLeft;
+    private DoorPanelRenderer m_OutsideDoorRight;
 
     public BuildingControl(ControlPanel controlPanel)
     {
@@ -36,6 +40,8 @@ public class BuildingControl implements LogicEntity
         // TODO: What scene do we want to start in? What ever we choose update below.
         m_ElevatorViewMng.activateAll();
     }
+
+    double example = 0.0; // Example how to use door animations with scaling percentage.
 
     @Override
     public void process(double deltaSeconds)
@@ -65,7 +71,16 @@ public class BuildingControl implements LogicEntity
         m_ControlPanelSnapShot = m_ControlPanel.getSnapShot(); // Get latest snap-shot.
         // Potentially update views.
         m_UpdateViewCheck(m_ControlPanelSnapShot.currentView);
-        // TODO: Do something with the snap-shot.
+
+
+        // Below is an example how to use the door animations with a scaling percentage.
+        // The first argument is the percentage and the second argument is the context to said
+        // percentage. i.e (50.0, DoorStatusTypes.OPENING) meaning open the doors to 50%.
+        example += 0.0001;
+        m_InsideDoorLeft.update(example, DoorStatusType.OPENING);
+        m_InsideDoorRight.update(example, DoorStatusType.OPENING);
+        m_OutsideDoorLeft.update(example, DoorStatusType.OPENING);
+        m_OutsideDoorRight.update(example, DoorStatusType.OPENING);
 
     }
 
@@ -99,10 +114,18 @@ public class BuildingControl implements LogicEntity
         m_ElevatorViewMng.add(new FloorSignRenderer(new FloorNumber(1),745,20,3,100,40));
         m_ElevatorViewMng.add(new CabinBackgroundRenderer(Orientation.INSIDE,600,0,4,400,400));
         m_ElevatorViewMng.add(new CabinBackgroundRenderer(Orientation.OUTSIDE, 0,0,4,400,400));
-        m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.LEFT,700,80,5,100,250)); // Left inside door.
-        m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.RIGHT,800,80,5,100,250)); // Right inside door.
-        m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.LEFT, 100,80,5,100,250)); // Left outside door.
-        m_ElevatorViewMng.add(new DoorPanelRenderer(DoorSideTypes.RIGHT, 200, 80, 5, 100, 250)); // Right outside door.
+
+        // Mappings of door open/close percentages to x positions. The indexes in the array correspond to
+        m_InsideDoorLeft = new DoorPanelRenderer(DoorSideTypes.LEFT,700,80,5,100,250, 639.8, 700,60.2);
+        m_InsideDoorRight =  new DoorPanelRenderer(DoorSideTypes.RIGHT,800,80,5,100,250, 800, 856.6, 56.6);
+        m_OutsideDoorLeft = new DoorPanelRenderer(DoorSideTypes.LEFT, 100,80,5,100,250, 39.8, 100, 60.2);
+        m_OutsideDoorRight =  new DoorPanelRenderer(DoorSideTypes.RIGHT, 200, 80, 5, 100, 250, 200,256.6,56.6);
+
+        m_ElevatorViewMng.add(m_InsideDoorLeft); // Left inside door.
+        m_ElevatorViewMng.add(m_InsideDoorRight); // Right inside door.
+        m_ElevatorViewMng.add(m_OutsideDoorLeft); // Left outside door.
+        m_ElevatorViewMng.add(m_OutsideDoorRight); // Right outside door.
+
         m_ElevatorViewMng.add(new ElevatorButtonPanelRenderer(900,107,3,80,150));
         m_ElevatorViewMng.add(new ElevatorNumberSignRenderer(new CabinNumber(1), 600,0,3,100,35));
         m_ElevatorViewMng.add(new LobbyFloorNumberSignRenderer(new FloorNumber(1), 0,0,3,100,35));
@@ -110,10 +133,10 @@ public class BuildingControl implements LogicEntity
 
         m_SystemOverviewMgr.add(new BuildingBackgroundRenderer(0,0,4,1000,400));
         for(int i = 0; i < 10; i++) m_SystemOverviewMgr.add(new ArrowButtonRenderer(ArrowButtonStates.NOTHING_PRESSED, 950, i*40, 3, 32,38));
-        m_SystemOverviewMgr.add(new OutsideCabinRenderer(120,360,3,40,40));
-        m_SystemOverviewMgr.add(new OutsideCabinRenderer(260,360,3,40,40));
-        m_SystemOverviewMgr.add(new OutsideCabinRenderer(710,360,3,40,40));
-        m_SystemOverviewMgr.add(new OutsideCabinRenderer(855,360,3,40,40));
+        m_SystemOverviewMgr.add(new OutsideCabinRenderer(120,365,3,40,35));
+        m_SystemOverviewMgr.add(new OutsideCabinRenderer(260,365,3,40,35));
+        m_SystemOverviewMgr.add(new OutsideCabinRenderer(710,365,3,40,35));
+        m_SystemOverviewMgr.add(new OutsideCabinRenderer(855,365,3,40,35));
 
     }
 
@@ -203,23 +226,42 @@ public class BuildingControl implements LogicEntity
      */
     class DoorPanelRenderer extends RenderEntity
     {
+        double m_XInit;
         double m_XPos;
         double m_YPos;
         double m_Depth;
-        DoorPanelRenderer(DoorSideTypes doorSide, int x, int y, int d, int w, int h)
+        double m_LBound;
+        double m_HBound;
+        double m_Width;
+        DoorSideTypes m_Side;
+        DoorPanelRenderer(DoorSideTypes doorSide, int x, int y, int d, int w, int h, double lBound, double hBound, double width)
         {
             m_XPos = x;
+            m_XInit = x;
             m_YPos = y;
             m_Depth = d;
+            m_Side = doorSide;
+            m_LBound = lBound;
+            m_HBound = hBound;
+            m_Width = width;
             setTexture("/resources/img/CCTV_Views/elevator/cabin/" + ((doorSide == DoorSideTypes.LEFT) ? "left" : "right") + "Door.png");
             setLocationXYDepth(m_XPos, m_YPos, m_Depth);
             setWidthHeight(w, h);
         }
 
-        public void updateXLocation(int x) {m_XPos = x;}
+
+        public void update(double percentage, DoorStatusType status)
+        {
+            if(status == DoorStatusType.OPENING && m_Side == DoorSideTypes.LEFT) m_XPos = m_HBound - (percentage * m_Width);
+            if(status == DoorStatusType.OPENING && m_Side == DoorSideTypes.RIGHT) m_XPos = m_LBound + (percentage * m_Width);
+            if(status == DoorStatusType.CLOSING && m_Side == DoorSideTypes.LEFT) m_XPos = m_LBound + (percentage * m_Width);
+            if(status == DoorStatusType.CLOSING && m_Side == DoorSideTypes.RIGHT) m_XPos = m_HBound - (percentage * m_Width);
+        }
 
         @Override
-        public void pulse(double deltaSeconds) { setLocationXYDepth(m_XPos, m_YPos, m_Depth); }
+        public void pulse(double deltaSeconds) {
+            setLocationXYDepth(m_XPos, m_YPos, m_Depth);
+        }
     }
 
 
@@ -343,7 +385,7 @@ public class BuildingControl implements LogicEntity
         public void updateYLocation(int y) {m_YPos = y;}
 
         @Override
-        public void pulse(double deltaSeconds) { setLocationXYDepth(m_XPos, m_YPos, m_Depth); }
+        public void pulse(double deltaSeconds) {setLocationXYDepth(m_XPos, m_YPos , m_Depth);}
     }
 
 
