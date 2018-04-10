@@ -19,8 +19,9 @@ public class MotorSimulation
 
   public void update(double deltaSeconds)
   {
-    //update the location based on the speed
-    loc += speed.get();
+    double step = speed.get() * deltaSeconds;
+    //update the location based on the speed and deltaSeconds
+    loc += step;
   }
 
   public void setSpeed(Speed speed)
