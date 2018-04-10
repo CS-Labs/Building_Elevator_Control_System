@@ -10,7 +10,7 @@ class DoorControl implements LogicEntity {
     // TODO Implement me
     DoorControl() {}
     @Override
-    public void process() {}
+    public void process(double deltaSeconds) {}
     public void open(FloorNumber floorNumber, CabinNumber cabinNumber) {}
     public void close(FloorNumber floorNumber, CabinNumber cabinNumber) {}
     public DoorStatusType getStatus(FloorNumber floorNumber, Cabin cabinNumber) {return null;}

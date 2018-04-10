@@ -14,6 +14,8 @@ public interface LogicEntity {
     /**
      * Performs the logic/computation associated with the logic entity. Just like a task,
      * there should never be an infinite loop inside of this method.
+     *
+     * @param deltaSeconds time elapsed since the last time this method was called
      */
-    void process();
+    void process(double deltaSeconds);
 }
