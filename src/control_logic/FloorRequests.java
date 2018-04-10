@@ -67,15 +67,17 @@ public class FloorRequests{
 
     // this needs to change a bit
     public ArrayList<CallButtons> getFloorRequests(){
-        ArrayList<CallButtons> requests = new ArrayList<>();
+        ArrayList<CallButtons> newrequests = new ArrayList<>();
 
         Random r = new Random();
         for(CallButtons button : buttons){
             if(r.nextInt(REQUESTPROB)==0 && !button.isPressed()) {
                 button.setButtonPressedState(true);
+                newrequests.add(button.makeCopy());
             }
         }
-        return this.getButtons();
+
+        return newrequests;
     }
 
     public ArrayList<ArrivalSignals> getArrivalSignals(){
