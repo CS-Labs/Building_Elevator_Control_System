@@ -2,12 +2,13 @@ package application;
 
 import javafx.geometry.Insets;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
-import named_types.FloorNumber;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.Queue;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.RowConstraints;
 
 public class FloorRequestPanel extends GridPane
 {
@@ -38,13 +39,18 @@ public class FloorRequestPanel extends GridPane
         //TODO the two buttons below should be up/down arrow buttons (circular button images are in resources folder).
         // TODO also need to add drop down menu to select floor. This panel is for the manager which allows them to
         // TODO select a floor and then make a floor request.
+        String upOn = "/resources/img/CCTV_Views/elevator/cabin/directionLights/upON.png";
+        String downOn = "/resources/img/CCTV_Views/elevator/cabin/directionLights/downON.png";
+        String upOff = "/resources/img/CCTV_Views/elevator/cabin/directionLights/upOFF.png";
+        String downOff = "/resources/img/CCTV_Views/elevator/cabin/directionLights/downOFF.png";
+        //Add the up and down buttons.
+        UpDownButton upButton = new UpDownButton(upOn, upOff, true, false);
+        UpDownButton downButton = new UpDownButton(downOn, downOff, false, true);
+        buttonPanel.add(upButton, 1, 0,5,1);
+        buttonPanel.add(downButton, 1, 1,5,1);
 
-        // Add the key.
-        Key key = new Key();
-        buttonPanel.add(key, 1, 0,5,1);
-        buttonPanel.add(new Key(), 1, 1,5,1);
-
-        GridPane.setMargin(key, new Insets(10,10,10,30));
+        GridPane.setMargin(upButton, new Insets(10,10,10,30));
+        GridPane.setMargin(downButton, new Insets(10,10,10,30));
         return buttonPanel;
     }
 

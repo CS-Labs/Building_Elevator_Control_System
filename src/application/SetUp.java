@@ -1,7 +1,11 @@
 package application;
 
 import control_logic.BuildingControl;
-import engine.*;
+import engine.ApplicationEntryPoint;
+import engine.Engine;
+import engine.EngineLoop;
+import engine.Message;
+import engine.SceneManager;
 
 // lol
 public class SetUp implements ApplicationEntryPoint {
@@ -31,8 +35,8 @@ public class SetUp implements ApplicationEntryPoint {
         Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.LOCK_PANEL_UPDATE));
         Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.KEY_LOCK_ACTIVATED));
         Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.KEY_LOCK_DEACTIVATED));
-
-
+        Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.MANAGER_UP));
+        Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.MANAGER_DOWN));
     }
 
     public static void main(String[] args) {
