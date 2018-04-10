@@ -29,7 +29,7 @@ public class BuildingControl implements LogicEntity
     }
 
     @Override
-    public void process()
+    public void process(double deltaSeconds)
     {
         m_ControlPanelSnapShot = m_ControlPanel.getSnapShot(); // Get latest snap-shot.
         // Potentially update views.

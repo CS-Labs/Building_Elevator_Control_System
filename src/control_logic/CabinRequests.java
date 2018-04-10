@@ -11,8 +11,8 @@ class CabinRequests
     // need to change these
     private static final double probability = .01;
 
-    //TODO Implement me
-    CabinRequests() {}
+    CabinRequests() {
+    }
 
     public HashSet<CabinNumber> getRequests() {
         Random r = new Random();

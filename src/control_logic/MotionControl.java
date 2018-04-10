@@ -13,7 +13,7 @@ class MotionControl implements LogicEntity
 
   //TODO Implement me
   @Override
-  public void process()
+  public void process(double deltaSeconds)
   {
     //don't know how to get delta seconds
     //call motorSimulation.update(delta seconds);
