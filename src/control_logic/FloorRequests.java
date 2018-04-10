@@ -12,6 +12,7 @@ public class FloorRequests{
     private ArrayList<ArrivalSignals> signals = new ArrayList<>();
     // this really depends on how often getfloorrequests is called and what we want the probability to be
     private static final int REQUESTPROB = 25;
+
     public FloorRequests(){
         buttons.add(new CallButtons(ControlLogicGlobals.MINFLOOR, DirectionType.UP));
         buttons.add(new CallButtons(ControlLogicGlobals.MINFLOOR, DirectionType.DOWN));

@@ -27,7 +27,6 @@ public class CallButtons{
     }
 
     public FloorNumber getFloor(){ return this.floor; }
-
     // when this is used, if ispressed == false, either an elevator has arrived to this floor
     // or there is a firealarm. otherwise, don't change state.
     public void setButtonPressedState(boolean isPressed){
