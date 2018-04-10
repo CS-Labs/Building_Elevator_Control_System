@@ -15,6 +15,7 @@ class Cabin
         this.cabinrequests = new CabinRequests();
     }
 
+    // this updates requests, call this first then call status.getAllActiveRequests so that it doesnt update
     public CabinStatus getStatus() {
         if(!lock) cabinrequests.getRequests();
         cabinstatus.setRequests(cabinrequests);

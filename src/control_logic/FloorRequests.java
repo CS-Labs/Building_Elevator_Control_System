@@ -65,7 +65,10 @@ public class FloorRequests{
         return copies;
     }
 
+    // this needs to change a bit
     public ArrayList<CallButtons> getFloorRequests(){
+        ArrayList<CallButtons> requests = new ArrayList<>();
+
         Random r = new Random();
         for(CallButtons button : buttons){
             if(r.nextInt(REQUESTPROB)==0 && !button.isPressed()) {

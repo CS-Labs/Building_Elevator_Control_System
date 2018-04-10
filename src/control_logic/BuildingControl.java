@@ -15,13 +15,22 @@ import java.util.List;
 
 public class BuildingControl implements LogicEntity
 {
+    private ElevatorAlgorithm ea;
     private SceneManager m_SystemOverviewMgr = new SceneManager();
     private SceneManager m_ElevatorViewMng = new SceneManager();
     private ControlPanelSnapShot m_ControlPanelSnapShot;
     private ControlPanel m_ControlPanel;
     private ViewTypes m_PreviousView = ViewTypes.ELEVATOR_ONE; //TODO: What is our starting view.
+    private ArrayList<Cabin> cabins = new ArrayList<>();
+    private FloorRequests floorrequests = new FloorRequests();
+    private boolean fire = false;
+
     public BuildingControl(ControlPanel controlPanel)
     {
+        // add cabins
+        for(int i = 0; i < 4; i+=1){
+            cabins.add(i,new Cabin(new CabinNumber(i+1)));
+        }
         m_ControlPanel = controlPanel;
         m_ConstructScenes();
         // TODO: What scene do we want to start in? What ever we choose update below.
@@ -31,6 +40,26 @@ public class BuildingControl implements LogicEntity
     @Override
     public void process()
     {
+        ArrayList<CabinStatus> statuses = new ArrayList<>();
+        ArrayList<FloorNumber> nextFloors = new ArrayList<>();
+
+        for(Cabin cabin : cabins){
+            CabinStatus status = cabin.getStatus();
+
+            statuses.add(status);
+
+            if(status.getMotionStatus() == MotionStatusTypes.STOPPED){
+                status.getAllActiveRequests().removeRequest(status.getLastFloor());
+                floorrequests.notifyOfArrival(status.getLastFloor(),status.getCabinNumber(),status.getDirection());
+            }
+        }
+
+        nextFloors = ea.schedule(statuses,floorrequests.getFloorRequests(),fire);
+
+        for(int i = 0; i < 4; i+=1){
+            cabins.get(i).getStatus().setDestination(nextFloors.get(i));
+        }
+
         m_ControlPanelSnapShot = m_ControlPanel.getSnapShot(); // Get latest snap-shot.
         // Potentially update views.
         m_UpdateViewCheck(m_ControlPanelSnapShot.currentView);

@@ -42,8 +42,8 @@ class CabinStatus
         copy.setMotionStatus(this.getMotionStatus());
         return copy;
     }
-//    public HashSet<CabinNumber> getAllActiveRequests() { return cabinRequests.getRequests(); }
-
+    
+    public CabinRequests getAllActiveRequests() { return cabinrequests; }
     public void setDirection(DirectionType direction){this.direction = direction;}
     public void setMotionStatus(MotionStatusTypes moving) {this.moving = moving;}
     public void setDestination(FloorNumber fn) {this.destination = fn;}
