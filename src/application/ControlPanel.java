@@ -24,8 +24,7 @@ public class ControlPanel extends GridPane
     ControlPanel()
     {
         GridPane constantPanel = m_SetupConstantPanel();
-        // TODO: Create panel that is specific to the system overview here.
-        //m_SystemOverviewMgr.add();
+        m_SystemOverviewMgr.add(new OverviewPanel(0,0));
         m_ElevatorViewMgr.add(new ElevatorPanel(400,0));
         // Note, the bottom panel never changes so we don't need to add it to a scene manager.
         Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, constantPanel));
