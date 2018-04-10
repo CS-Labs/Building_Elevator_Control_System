@@ -24,6 +24,8 @@ public class BuildingControl implements LogicEntity
     private ArrayList<Cabin> cabins = new ArrayList<>();
     private FloorRequests floorrequests = new FloorRequests();
     private boolean fire = false;
+    private DoorControl _doorControl;
+    private SceneManager _alwaysActive;
     private DoorPanelRenderer m_InsideDoorLeft;
     private DoorPanelRenderer m_InsideDoorRight;
     private DoorPanelRenderer m_OutsideDoorLeft;
@@ -39,6 +41,11 @@ public class BuildingControl implements LogicEntity
         m_ConstructScenes();
         // TODO: What scene do we want to start in? What ever we choose update below.
         m_ElevatorViewMng.activateAll();
+        // TODO maybe remove below for something more permanent?
+        _doorControl = new DoorControl(10, 4);
+        _alwaysActive = new SceneManager();
+        _alwaysActive.add(_doorControl);
+        _alwaysActive.activateAll();
     }
 
     double example = 0.0; // Example how to use door animations with scaling percentage.
@@ -76,11 +83,20 @@ public class BuildingControl implements LogicEntity
         // Below is an example how to use the door animations with a scaling percentage.
         // The first argument is the percentage and the second argument is the context to said
         // percentage. i.e (50.0, DoorStatusTypes.OPENING) meaning open the doors to 50%.
-        example += 0.0001;
-        m_InsideDoorLeft.update(example, DoorStatusType.OPENING);
-        m_InsideDoorRight.update(example, DoorStatusType.OPENING);
-        m_OutsideDoorLeft.update(example, DoorStatusType.OPENING);
-        m_OutsideDoorRight.update(example, DoorStatusType.OPENING);
+        //example += 0.0001;
+        CabinNumber cabin = new CabinNumber(1); // TODO maybe don't allocate this up to 1000 times per second
+        FloorNumber floor = new FloorNumber(1);
+        double innerPercentage = _doorControl.getInnerDoorsPercentageOpen(cabin);
+        double outerPercentage = _doorControl.getOuterDoorsPercentageOpen(floor, cabin);
+        DoorStatusType status = _doorControl.getStatus(floor, cabin);
+        // This just flips the status of door control from open to closing or closed to opening
+        // while we work on the actual algorithm for deciding this
+        if (status == DoorStatusType.CLOSED) _doorControl.open(floor, cabin);
+        else if (status == DoorStatusType.OPENED) _doorControl.close(floor, cabin);
+        m_InsideDoorLeft.update(innerPercentage, status);
+        m_InsideDoorRight.update(innerPercentage, status);
+        m_OutsideDoorLeft.update(outerPercentage, status);
+        m_OutsideDoorRight.update(outerPercentage, status);
 
     }
 
@@ -252,10 +268,14 @@ public class BuildingControl implements LogicEntity
 
         public void update(double percentage, DoorStatusType status)
         {
+            /**
             if(status == DoorStatusType.OPENING && m_Side == DoorSideTypes.LEFT) m_XPos = m_HBound - (percentage * m_Width);
             if(status == DoorStatusType.OPENING && m_Side == DoorSideTypes.RIGHT) m_XPos = m_LBound + (percentage * m_Width);
             if(status == DoorStatusType.CLOSING && m_Side == DoorSideTypes.LEFT) m_XPos = m_LBound + (percentage * m_Width);
             if(status == DoorStatusType.CLOSING && m_Side == DoorSideTypes.RIGHT) m_XPos = m_HBound - (percentage * m_Width);
+             */
+            if (m_Side == DoorSideTypes.LEFT) m_XPos = m_HBound - (percentage * m_Width);
+            if (m_Side == DoorSideTypes.RIGHT) m_XPos = m_LBound + (percentage * m_Width);
         }
 
         @Override

@@ -47,7 +47,6 @@ class DoorControl implements LogicEntity {
             _completedSimulations.clear();
             for (ElevatorDoorMotor motor : _simulatingMotors) {
                 motor.update(deltaSeconds);
-                System.out.println(motor.getOpenPercentage());
                 DoorStatusType val = _sensor.checkDoorStatus(motor.getOpenPercentage(),
                         motor.getStatus() == DoorStatusType.OPENING);
                 // See if the sensor has been triggered
