@@ -6,7 +6,6 @@ import java.util.ArrayList;
 
 // POD class.
 public class ControlPanelSnapShot {
-    // TODO: Once CallButtons is added this should return an array list of call buttons.
     public ArrayList<Integer> manualFloorsPresses;
     public boolean isAlarmOn;
     // Index + 1 corresponds to the elevator panel numbers, boolean value true if locked, false if not locked.

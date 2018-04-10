@@ -38,6 +38,9 @@ https://pngtree.com/freepng/fire-alarm-circular-cartoon-vector-material_2427371.
 http://all-free-download.com/free-vector/download/website-numbered-buttons-vector_533063.html  
 https://www.shareicon.net/human-people-male-men-users-user-person-man-account-profile-avatar-98071  
 http://www.myfreephotoshop.com/up-and-down-buttons-psd-material.html  
-https://commons.wikimedia.org/wiki/File:Circle-icons-flame.svg  
+https://commons.wikimedia.org/wiki/File:Circle-icons-flame.svg 
+With accreditation: 
+Flower Pot Image: 
+http://hdimagelib.com/flower+pot+clipart+png
 Fonts created with:  
 https://fontmeme.com/fonts/ds-digital-font/  

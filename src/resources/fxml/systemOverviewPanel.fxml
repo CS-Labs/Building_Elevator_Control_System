@@ -24,19 +24,19 @@
         <RadioButton fx:id="overview" userData="overview" layoutX="2.0" layoutY="163.0" mnemonicParsing="false" prefWidth="153.0" text="Building Overview" textFill="#ffffff"/>
       </children>
     </Pane>
-    <Pane fx:id="lockPane" layoutX="726.0" layoutY="25.0" prefHeight="200.0" prefWidth="174.0">
+    <Pane fx:id="lockPane" layoutX="850.0" layoutY="25.0" prefHeight="200.0" prefWidth="174.0">
       <children>
         <Label fx:id="lockLabel" layoutX="14.0" layoutY="14.0" prefWidth="139.0" text="Button Locker" textAlignment="CENTER" underline="true" textFill="#ffffff"/>
       </children>
     </Pane>
-    <Pane layoutX="325.0" layoutY="5.0" prefHeight="200.0" prefWidth="273.0">
+    <Pane layoutX="330.0" layoutY="5.0" prefHeight="200.0" prefWidth="273.0">
       <children>
-        <ImageView id="firealarmpanel.png" fitHeight="150.0" fitWidth="290.0" layoutX="26.0" layoutY="81.0">
+        <ImageView id="firealarmpanel.png" fitHeight="150.0" fitWidth="290.0" layoutX="26.0" layoutY="60.0">
           <image>
             <Image url="@../img/Building_Overview/Building_Fire_Alarm/firealarmpanel.png" preserveRatio="true" smooth="true" />
           </image>
         </ImageView>
-        <Button fx:id="fireAlarm" layoutX="142.0" layoutY="160.0" mnemonicParsing="false" text="Button" />
+        <Button fx:id="fireAlarm" layoutX="142.0" layoutY="141.0" mnemonicParsing="false" text="Button" />
       </children>
     </Pane>
   </children>
