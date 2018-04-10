@@ -54,11 +54,13 @@ public class BuildingControl implements LogicEntity
             }
         }
 
+        /* TODO implement algorithm
         nextFloors = ea.schedule(statuses,floorrequests.getFloorRequests(),fire);
 
         for(int i = 0; i < 4; i+=1){
             cabins.get(i).getStatus().setDestination(nextFloors.get(i));
         }
+        */
 
         m_ControlPanelSnapShot = m_ControlPanel.getSnapShot(); // Get latest snap-shot.
         // Potentially update views.
