@@ -69,7 +69,7 @@ public class BuildingControl implements LogicEntity
 
             statuses.add(status);
 
-            if(status.getMotionStatus() == MotionStatusTypes.STOPPED){
+            if(status.getLastFloor() == status.getDestination() && status.getMotionStatus() == MotionStatusTypes.STOPPED){
                 status.getAllActiveRequests().removeRequest(status.getLastFloor());
                 floorrequests.notifyOfArrival(status.getLastFloor(),status.getCabinNumber(),status.getDirection());
             }

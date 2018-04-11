@@ -67,17 +67,18 @@ class MotionControl implements LogicEntity
 //      }
       direction = DirectionType.DOWN;
       motionStatus = MotionStatusTypes.MOVING;
-      motorSimulation.setSpeed(new Speed(5));
+      motorSimulation.setSpeed(new Speed(25));
     }
     else if (lastFloor < floorToGoTO.get())
     {
       direction = DirectionType.UP;
       motionStatus = MotionStatusTypes.MOVING;
-      motorSimulation.setSpeed(new Speed(-5));
+      motorSimulation.setSpeed(new Speed(-25));
     }
     else
     {
       motionStatus = MotionStatusTypes.STOPPED;
+      motorSimulation.setSpeed(new Speed(0.0));
       //if we are approaching the desired floor, we should decrease speed.
      // motorSimulation.setSpeed(new Speed(decreaseByRate(speedProfile.get(speedProfile.size()-1))));
     }
