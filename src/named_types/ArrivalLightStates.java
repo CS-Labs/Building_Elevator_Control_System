@@ -13,9 +13,9 @@ public enum ArrivalLightStates
             case NO_ARRIVAL:
                 return "noArrival.png";
             case ARRIVAL_GOING_UP:
-                return "arrivalGoingUp";
+                return "arrivalGoingUp.png";
             case ARRIVAL_GOING_DOWN:
-                return "arrivalGoingDown";
+                return "arrivalGoingDown.png";
             default:
                 throw new IllegalArgumentException("Unhandled enum type.");
         }

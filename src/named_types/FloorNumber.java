@@ -16,4 +16,8 @@ public class FloorNumber
         return (fn.m_Floor == this.m_Floor);
     }
 
+    @Override
+    public String toString() {
+        return ""+m_Floor;
+    }
 }

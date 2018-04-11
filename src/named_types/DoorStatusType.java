@@ -6,4 +6,6 @@ public enum DoorStatusType
     CLOSING,
     OPENED,
     CLOSED;
+
+
 }

@@ -30,11 +30,21 @@ public class BuildingControl implements LogicEntity
     private DoorPanelRenderer m_InsideDoorRight;
     private DoorPanelRenderer m_OutsideDoorLeft;
     private DoorPanelRenderer m_OutsideDoorRight;
+    private FloorSignRenderer m_FloorSignRenderer;
+    private LobbyFloorNumberSignRenderer m_DestinationFloorRenderer;
+    private ElevatorButtonPanelRenderer m_ButtonPanelRenderer;
+    private ArrivalLightRenderer m_ArrivalLightRenderer;
+
+    // TODO Implement this better? This is just for the demo.
+    private double doorCloseTime = 5.0;
+    private boolean wasOpened = false;
+    private int previousDest = -1;
 
     public BuildingControl(ControlPanel controlPanel)
     {
         // add cabins
-        for(int i = 0; i < 4; i+=1){
+        //TODO setback to four cabins after the demo.
+        for(int i = 0; i < 1; i+=1){
             cabins.add(i,new Cabin(new CabinNumber(i+1)));
         }
         m_ControlPanel = controlPanel;
@@ -48,7 +58,6 @@ public class BuildingControl implements LogicEntity
         _alwaysActive.activateAll();
     }
 
-    double example = 0.0; // Example how to use door animations with scaling percentage.
 
     @Override
     public void process(double deltaSeconds)
@@ -75,28 +84,61 @@ public class BuildingControl implements LogicEntity
         }
         */
 
+
         m_ControlPanelSnapShot = m_ControlPanel.getSnapShot(); // Get latest snap-shot.
         // Potentially update views.
         m_UpdateViewCheck(m_ControlPanelSnapShot.currentView);
 
 
-        // Below is an example how to use the door animations with a scaling percentage.
-        // The first argument is the percentage and the second argument is the context to said
-        // percentage. i.e (50.0, DoorStatusTypes.OPENING) meaning open the doors to 50%.
-        //example += 0.0001;
-        CabinNumber cabin = new CabinNumber(1); // TODO maybe don't allocate this up to 1000 times per second
-        FloorNumber floor = new FloorNumber(1);
-        double innerPercentage = _doorControl.getInnerDoorsPercentageOpen(cabin);
-        double outerPercentage = _doorControl.getOuterDoorsPercentageOpen(floor, cabin);
-        DoorStatusType status = _doorControl.getStatus(floor, cabin);
-        // This just flips the status of door control from open to closing or closed to opening
-        // while we work on the actual algorithm for deciding this
-        if (status == DoorStatusType.CLOSED) _doorControl.open(floor, cabin);
-        else if (status == DoorStatusType.OPENED) _doorControl.close(floor, cabin);
-        m_InsideDoorLeft.update(innerPercentage, status);
-        m_InsideDoorRight.update(innerPercentage, status);
-        m_OutsideDoorLeft.update(outerPercentage, status);
-        m_OutsideDoorRight.update(outerPercentage, status);
+        // dumb algorithm just for demo, only works with one cabin and a single request at a time.
+        if(m_ControlPanelSnapShot.manualFloorsPresses.size() != 0)
+        {
+            cabins.get(0).setDestination(new FloorNumber(m_ControlPanelSnapShot.manualFloorsPresses.get(0)));
+        }
+        CabinStatus cs = cabins.get(0).getStatus();
+        m_FloorSignRenderer.updateFloorNumber(cs.getLastFloor());
+        if(cs.getDestination().get() > 0) {
+            m_DestinationFloorRenderer.setFloorNumber(cs.getDestination());
+            m_ButtonPanelRenderer.turnOnFloorButton(cs.getDestination());
+            if (cs.getDestination().get() != previousDest)
+            {
+                previousDest = cs.getDestination().get();
+                wasOpened = false;
+            }
+        }
+        if(cs.getDestination().equals(cs.getLastFloor()) && cs.getMotionStatus() == MotionStatusTypes.STOPPED) // WE MADE IT
+        {
+            m_ButtonPanelRenderer.turnOffFloorButton(cs.getDestination());
+            CabinNumber cabin = new CabinNumber(1);
+            FloorNumber floor = new FloorNumber(1);
+            double innerPercentage = _doorControl.getInnerDoorsPercentageOpen(cabin);
+            double outerPercentage = _doorControl.getOuterDoorsPercentageOpen(floor, cabin);
+            DoorStatusType status = _doorControl.getStatus(floor, cabin);
+            if(!wasOpened)
+            {
+                _doorControl.open(floor, cabin);
+                if(cs.getDirection() == DirectionType.UP) m_ArrivalLightRenderer.setArrivalLightState(ArrivalLightStates.ARRIVAL_GOING_UP);
+                if(cs.getDirection() == DirectionType.DOWN) m_ArrivalLightRenderer.setArrivalLightState(ArrivalLightStates.ARRIVAL_GOING_DOWN);
+            }
+            else
+            {
+                _doorControl.close(floor,cabin);
+                m_ArrivalLightRenderer.setArrivalLightState(ArrivalLightStates.NO_ARRIVAL);
+            }
+            m_InsideDoorLeft.update(innerPercentage, status);
+            m_InsideDoorRight.update(innerPercentage, status);
+            m_OutsideDoorLeft.update(outerPercentage, status);
+            m_OutsideDoorRight.update(outerPercentage, status);
+            doorCloseTime += deltaSeconds;
+            if(doorCloseTime > 15)
+            {
+                wasOpened = true;
+                doorCloseTime = 0.0;
+            }
+
+        }
+        // End dumb algorithm
+
 
     }
 
@@ -127,7 +169,8 @@ public class BuildingControl implements LogicEntity
         // Add all render entities that go in the system overview.
 
         // Add all render entities that go in the single elevator view.
-        m_ElevatorViewMng.add(new FloorSignRenderer(new FloorNumber(1),745,20,3,100,40));
+        m_FloorSignRenderer = new FloorSignRenderer(new FloorNumber(1),745,20,3,100,40);
+        m_ElevatorViewMng.add(m_FloorSignRenderer);
         m_ElevatorViewMng.add(new CabinBackgroundRenderer(Orientation.INSIDE,600,0,4,400,400));
         m_ElevatorViewMng.add(new CabinBackgroundRenderer(Orientation.OUTSIDE, 0,0,4,400,400));
 
@@ -142,10 +185,13 @@ public class BuildingControl implements LogicEntity
         m_ElevatorViewMng.add(m_OutsideDoorLeft); // Left outside door.
         m_ElevatorViewMng.add(m_OutsideDoorRight); // Right outside door.
 
-        m_ElevatorViewMng.add(new ElevatorButtonPanelRenderer(900,107,3,80,150));
+        m_ButtonPanelRenderer = new ElevatorButtonPanelRenderer(900,107,3,80,150);
+        m_ElevatorViewMng.add(m_ButtonPanelRenderer);
         m_ElevatorViewMng.add(new ElevatorNumberSignRenderer(new CabinNumber(1), 600,0,3,100,35));
-        m_ElevatorViewMng.add(new LobbyFloorNumberSignRenderer(new FloorNumber(1), 0,0,3,100,35));
-        m_ElevatorViewMng.add(new ArrivalLightRenderer(ArrivalLightStates.NO_ARRIVAL, 175,40,3,50,20));
+        m_DestinationFloorRenderer = new LobbyFloorNumberSignRenderer(new FloorNumber(1), 0,0,3,100,35);
+        m_ElevatorViewMng.add(m_DestinationFloorRenderer);
+        m_ArrivalLightRenderer = (new ArrivalLightRenderer(ArrivalLightStates.NO_ARRIVAL, 175,40,3,50,20));
+        m_ElevatorViewMng.add(m_ArrivalLightRenderer);
 
         m_SystemOverviewMgr.add(new BuildingBackgroundRenderer(0,0,4,1000,400));
         for(int i = 0; i < 10; i++) m_SystemOverviewMgr.add(new ArrowButtonRenderer(ArrowButtonStates.NOTHING_PRESSED, 950, i*40, 3, 32,38));
@@ -309,8 +355,8 @@ public class BuildingControl implements LogicEntity
             setWidthHeight(w, h);
         }
 
-        public void turnOnFloorButton(FloorNumber floorNumber) {buttonRenderers.get(floorNumber.get()).turnOn();}
-        public void turnOffFloorButton(FloorNumber floorNumber) {buttonRenderers.get(floorNumber.get()).turnOff();}
+        public void turnOnFloorButton(FloorNumber floorNumber) {buttonRenderers.get(floorNumber.get()-1).turnOn();}
+        public void turnOffFloorButton(FloorNumber floorNumber) {buttonRenderers.get(floorNumber.get()-1).turnOff();}
 
         @Override
         public void pulse(double deltaSeconds) {
