@@ -8,10 +8,7 @@ import engine.RenderEntity;
 import engine.SceneManager;
 import named_types.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class BuildingControl implements LogicEntity
 {
@@ -34,6 +31,8 @@ public class BuildingControl implements LogicEntity
     private LobbyFloorNumberSignRenderer m_DestinationFloorRenderer;
     private ElevatorButtonPanelRenderer m_ButtonPanelRenderer;
     private ArrivalLightRenderer m_ArrivalLightRenderer;
+    private HashSet<FloorNumber> _floorRequests = new HashSet<>(); // TODO: Remove this for real algorithm
+    private LinkedList<FloorNumber> _acceptedRequests = new LinkedList<>();
 
     // TODO Implement this better? This is just for the demo.
     private double doorCloseTime = 5.0;
@@ -91,9 +90,17 @@ public class BuildingControl implements LogicEntity
 
 
         // dumb algorithm just for demo, only works with one cabin and a single request at a time.
+        CabinNumber cabin = new CabinNumber(1);
+        FloorNumber floor = new FloorNumber(1);
         if(m_ControlPanelSnapShot.manualFloorsPresses.size() != 0)
         {
-            cabins.get(0).setDestination(new FloorNumber(m_ControlPanelSnapShot.manualFloorsPresses.get(0)));
+            // Try to insert the floor request if it has not already been requested
+            FloorNumber floorReq = new FloorNumber(m_ControlPanelSnapShot.manualFloorsPresses.get(0));
+            if (!_floorRequests.contains(floorReq)) {
+                _floorRequests.add(floorReq);
+                _acceptedRequests.add(floorReq);
+            }
+            //cabins.get(0).setDestination(new FloorNumber(m_ControlPanelSnapShot.manualFloorsPresses.get(0)));
         }
         CabinStatus cs = cabins.get(0).getStatus();
         m_FloorSignRenderer.updateFloorNumber(cs.getLastFloor());
@@ -109,8 +116,6 @@ public class BuildingControl implements LogicEntity
         if(cs.getDestination().equals(cs.getLastFloor()) && cs.getMotionStatus() == MotionStatusTypes.STOPPED) // WE MADE IT
         {
             m_ButtonPanelRenderer.turnOffFloorButton(cs.getDestination());
-            CabinNumber cabin = new CabinNumber(1);
-            FloorNumber floor = new FloorNumber(1);
             double innerPercentage = _doorControl.getInnerDoorsPercentageOpen(cabin);
             double outerPercentage = _doorControl.getOuterDoorsPercentageOpen(floor, cabin);
             DoorStatusType status = _doorControl.getStatus(floor, cabin);
@@ -130,16 +135,28 @@ public class BuildingControl implements LogicEntity
             m_OutsideDoorLeft.update(outerPercentage, status);
             m_OutsideDoorRight.update(outerPercentage, status);
             doorCloseTime += deltaSeconds;
-            if(doorCloseTime > 15)
+            //if(doorCloseTime > 15)
+            if (doorCloseTime > 15 && _doorControl.getStatus(floor, cabin) == DoorStatusType.OPENED)
             {
                 wasOpened = true;
                 doorCloseTime = 0.0;
             }
 
         }
+
+        // If this is true, the cabin is both stopped and the doors are closed so it is safe to
+        // assign it a new destination if there is one
+        if(cs.getMotionStatus() == MotionStatusTypes.STOPPED &&
+                _doorControl.getStatus(floor, cabin) == DoorStatusType.CLOSED) {
+            if (_acceptedRequests.size() > 0) {
+                FloorNumber floorReq = _acceptedRequests.poll();
+                _floorRequests.remove(floorReq);
+                cabins.get(0).setDestination(floorReq);
+                System.out.println("Remaining requests (in queue): " + _acceptedRequests);
+            }
+        }
+
         // End dumb algorithm
-
-
     }
 
     private void m_UpdateViewCheck(ViewTypes updatedView)

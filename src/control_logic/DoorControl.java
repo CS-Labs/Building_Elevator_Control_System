@@ -61,6 +61,8 @@ class DoorControl implements LogicEntity {
 
     public void open(FloorNumber floorNumber, CabinNumber cabinNumber) {
         synchronized (this) {
+            DoorStatusType status = getStatus(floorNumber, cabinNumber);
+            if (status == DoorStatusType.OPENED || status == DoorStatusType.OPENING) return; // Already opened/opening
             ElevatorDoorMotor lobby = _lobbyMotors[floorNumber.get()][cabinNumber.get()];
             ElevatorDoorMotor cabin = _cabinMotors[cabinNumber.get()];
             lobby.open(_SPEED_MS);
@@ -72,6 +74,8 @@ class DoorControl implements LogicEntity {
 
     public void close(FloorNumber floorNumber, CabinNumber cabinNumber) {
         synchronized (this) {
+            DoorStatusType status = getStatus(floorNumber, cabinNumber);
+            if (status == DoorStatusType.CLOSED || status == DoorStatusType.CLOSING) return; // Already closed/closing
             ElevatorDoorMotor lobby = _lobbyMotors[floorNumber.get()][cabinNumber.get()];
             ElevatorDoorMotor cabin = _cabinMotors[cabinNumber.get()];
             lobby.close(_SPEED_MS);
