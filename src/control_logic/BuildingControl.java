@@ -106,7 +106,6 @@ public class BuildingControl implements LogicEntity
         m_FloorSignRenderer.updateFloorNumber(cs.getLastFloor());
         if(cs.getDestination().get() > 0) {
             m_DestinationFloorRenderer.setFloorNumber(cs.getDestination());
-            m_ButtonPanelRenderer.turnOnFloorButton(cs.getDestination());
             if (cs.getDestination().get() != previousDest)
             {
                 previousDest = cs.getDestination().get();
@@ -144,6 +143,7 @@ public class BuildingControl implements LogicEntity
 
         }
 
+        for(FloorNumber i : _acceptedRequests) m_ButtonPanelRenderer.turnOnFloorButton(i);
         // If this is true, the cabin is both stopped and the doors are closed so it is safe to
         // assign it a new destination if there is one
         if(cs.getMotionStatus() == MotionStatusTypes.STOPPED &&
@@ -153,6 +153,7 @@ public class BuildingControl implements LogicEntity
                 _floorRequests.remove(floorReq);
                 cabins.get(0).setDestination(floorReq);
                 System.out.println("Remaining requests (in queue): " + _acceptedRequests);
+
             }
         }
 
