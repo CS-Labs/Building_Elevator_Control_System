@@ -6,6 +6,8 @@ import named_types.FloorNumber;
 import engine.LogicEntity;
 import named_types.Speed;
 
+import java.util.ArrayList;
+
 class MotionControl implements LogicEntity
 {
 
@@ -29,15 +31,43 @@ class MotionControl implements LogicEntity
     speedUpdate();
   }
 
+  double increaseByRate(int targetSpeed)
+  {
+    double rate = 0.005;
+
+    return (targetSpeed + rate);
+  }
+
+  double decreaseByRate (int targetSpeed)
+  {
+    double rate = 0.005;
+
+    return (targetSpeed - rate);
+  }
+
   private void speedUpdate()
   {
     if(floorToGoTO == null) return;
     //Mina's speed profile should go here
+    //experimental speed profile
+    //negative speed is UP. positive is down.
+    ArrayList<Integer> speedProfile = new ArrayList<>();
+    speedProfile.add(0);
+    speedProfile.add(-1);
+    speedProfile.add(0);
     if(lastFloor > floorToGoTO.get())
     {
+      if (motorSimulation.getSpeed().equals(speedProfile.get(speedProfile.size() / 2)))
+      {
+        motorSimulation.setSpeed(new Speed(speedProfile.get(speedProfile.size() / 2)));
+      }
+      else
+      {
+        increaseByRate(1);
+      }
       direction = DirectionType.DOWN;
       motionStatus = MotionStatusTypes.MOVING;
-      motorSimulation.setSpeed(new Speed(5));
+      //motorSimulation.setSpeed(new Speed(5));
     }
     else if (lastFloor < floorToGoTO.get())
     {
@@ -48,7 +78,8 @@ class MotionControl implements LogicEntity
     else
     {
       motionStatus = MotionStatusTypes.STOPPED;
-      motorSimulation.setSpeed(new Speed(0));
+      //if we are approaching the desired floor, we should decrease speed.
+      motorSimulation.setSpeed(new Speed(decreaseByRate(speedProfile.get(speedProfile.size()-1))));
     }
   }
 
@@ -80,3 +111,50 @@ class MotionControl implements LogicEntity
   }
 
 }
+
+/*
+  private void speedUpdate()
+  {
+    //Mina's speed profile should go here
+    //experimental speed profile
+    //negative speed is UP. positive is down.
+    ArrayList<Integer> speedProfile = new ArrayList<>();
+    speedProfile.add(0);
+    speedProfile.add(-1);
+    speedProfile.add(0);
+
+    int floorToGoInt = floorToGoTO.get();
+
+    if (floorToGoInt - lastFloor >= 1)
+    {
+      if (motorSimulation.getSpeed().equals(speedProfile.get(speedProfile.size() / 2)))
+      {
+        motorSimulation.setSpeed(new Speed(speedProfile.get(speedProfile.size() / 2)));
+      }
+      else
+      {
+        increaseByRate(1);
+      }
+    }
+    else
+    {
+      //if we are approaching the desired floor, we should decrease speed.
+      motorSimulation.setSpeed(new Speed(decreaseByRate(speedProfile.get(speedProfile.size()-1))));
+    }
+
+
+    //Javi's
+     if(lastFloor > floorToGoTO.get())
+     {
+     motorSimulation.setSpeed(new Speed(0.5));
+     }
+     else if (lastFloor < floorToGoTO.get())
+     {
+     motorSimulation.setSpeed(new Speed(-0.5));
+     }
+     else
+     {
+     motorSimulation.setSpeed(new Speed(0));
+     }
+
+  */
