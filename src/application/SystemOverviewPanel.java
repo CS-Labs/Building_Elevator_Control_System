@@ -1,21 +1,25 @@
 package application;
 
-import named_types.ViewTypes;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.ResourceBundle;
+
 import engine.Engine;
 import engine.Message;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.ResourceBundle;
+import named_types.ViewTypes;
 
 public class SystemOverviewPanel implements Initializable
 {
@@ -25,13 +29,15 @@ public class SystemOverviewPanel implements Initializable
   @FXML RadioButton viewThree;
   @FXML RadioButton viewFour;
   @FXML RadioButton overview;
-  @FXML
+  @FXML 
   Pane lockPane;
   @FXML Button fireAlarm;
+  @FXML ChoiceBox<String> floorSelector;
   // List of boolean values where each index correspond to the index+1 elevator panel and the boolean value
   // corresponds to whether said elevator panel is locked or not.
   ArrayList<Boolean> m_LockedPanels = new ArrayList<>(Arrays.asList(false, false, false, false));
   boolean m_On = false;
+  int m_floorSelected = 0;
 
 
   @Override
@@ -40,8 +46,33 @@ public class SystemOverviewPanel implements Initializable
     m_SetupViewButtons();
     m_SetupFireAlarmPanel();
     m_SetupLockButtons();
+    m_SetUpFloorSelector();
   }
 
+  private void m_SetUpFloorSelector()
+  {
+    floorSelector.getItems().add("Floor 1");
+    floorSelector.getItems().add("Floor 2");
+    floorSelector.getItems().add("Floor 3");
+    floorSelector.getItems().add("Floor 4");
+    floorSelector.getItems().add("Floor 5");
+    floorSelector.getItems().add("Floor 6");
+    floorSelector.getItems().add("Floor 7");
+    floorSelector.getItems().add("Floor 8");
+    floorSelector.getItems().add("Floor 9");
+    floorSelector.getItems().add("Floor 10");
+    floorSelector.getSelectionModel().selectedIndexProperty().addListener(new
+        ChangeListener<Number>(){
+
+          @Override
+          public void changed(ObservableValue<? extends Number> arg0,
+              Number arg1, Number arg2)
+          {
+            m_floorSelected = arg2.intValue() + 1;
+          }
+      
+    });
+  }
 
   private void m_SetupFireAlarmPanel()
   {
