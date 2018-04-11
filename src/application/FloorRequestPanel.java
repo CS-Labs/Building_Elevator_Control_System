@@ -1,17 +1,18 @@
 package application;
 
+import engine.Engine;
+import engine.Message;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.RowConstraints;
+import javafx.scene.layout.*;
+import named_types.FloorNumber;
 
 public class FloorRequestPanel extends GridPane
 {
+    private FloorNumber m_ActiveFloor;
     FloorRequestPanel(int x, int y)
     {
         this.setStyle("-fx-background-color: #000000");
@@ -21,6 +22,7 @@ public class FloorRequestPanel extends GridPane
         this.setWidth(200);
         GridPane requestPanel = m_CreateFloorRequestPanel();
         this.add(requestPanel,1,2);
+
     }
 
 
@@ -46,12 +48,44 @@ public class FloorRequestPanel extends GridPane
         //Add the up and down buttons.
         UpDownButton upButton = new UpDownButton(upOn, upOff, true, false);
         UpDownButton downButton = new UpDownButton(downOn, downOff, false, true);
+
+        // Send whether the up/down arrow was pressed and what floor the press took place on.
+        upButton.setOnAction((event) -> {
+            if(upButton.up)
+            {
+                Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.MANAGER_UP, m_ActiveFloor));
+            }
+            else if(upButton.down)
+            {
+                Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.MANAGER_DOWN, m_ActiveFloor));
+            }
+        });
+
+
+
         buttonPanel.add(upButton, 1, 0,5,1);
         buttonPanel.add(downButton, 1, 1,5,1);
 
         GridPane.setMargin(upButton, new Insets(10,10,10,30));
-        GridPane.setMargin(downButton, new Insets(10,10,10,30));
+        GridPane.setMargin(downButton, new Insets(10,10,0,30));
+        ChoiceBox<String> floorSelector = new ChoiceBox<>();
+        floorSelector.getItems().addAll("Floor 1", "Floor 2", "Floor 3", "Floor 4", "Floor 5", "Floor 6", "Floor 7",
+                "Floor 8", "Floor 9", "Floor 10");
+        floorSelector.getSelectionModel().selectedIndexProperty().addListener(new
+          ChangeListener<Number>(){
+              @Override
+              public void changed(ObservableValue<? extends Number> arg0,
+                                  Number arg1, Number arg2)
+              {
+                  m_ActiveFloor = new FloorNumber(arg2.intValue()+1);
+              }
+          });
+        buttonPanel.add(floorSelector, 1, 2, 5, 1);
+        floorSelector.getSelectionModel().selectFirst();
+        m_ActiveFloor = new FloorNumber(1);
+        GridPane.setMargin(floorSelector, new Insets(0,0,0,15));
         return buttonPanel;
+
     }
 
 

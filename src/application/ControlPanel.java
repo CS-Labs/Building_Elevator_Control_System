@@ -1,5 +1,7 @@
 package application;
 
+import javafx.util.Pair;
+import named_types.DirectionType;
 import named_types.FloorNumber;
 import named_types.ViewTypes;
 import engine.*;
@@ -21,6 +23,7 @@ public class ControlPanel extends GridPane
     private boolean m_KeyActivated = false;
     private SceneManager m_ElevatorViewMgr = new SceneManager(); // Only on screen when viewing inside elevators.
     private SceneManager m_SystemOverviewMgr = new SceneManager(); // Only on screen when viewing system overview.
+    private Pair<DirectionType, FloorNumber> m_UpDownEvent = null;
     ControlPanel()
     {
         GridPane constantPanel = m_SetupConstantPanel();
@@ -54,6 +57,8 @@ public class ControlPanel extends GridPane
         Engine.getMessagePump().signalInterest(ControlPanelGlobals.LOCK_PANEL_UPDATE, m_Helper);
         Engine.getMessagePump().signalInterest(ControlPanelGlobals.KEY_LOCK_ACTIVATED, m_Helper);
         Engine.getMessagePump().signalInterest(ControlPanelGlobals.KEY_LOCK_DEACTIVATED, m_Helper);
+        Engine.getMessagePump().signalInterest(ControlPanelGlobals.MANAGER_UP, m_Helper);
+        Engine.getMessagePump().signalInterest(ControlPanelGlobals.MANAGER_DOWN, m_Helper);
     }
 
 
@@ -89,8 +94,9 @@ public class ControlPanel extends GridPane
     public ControlPanelSnapShot getSnapShot()
     {
         ControlPanelSnapShot snapShot = new ControlPanelSnapShot(new ArrayList<>(m_FloorsButtonsPressed),
-                m_AlarmOn, new ArrayList<>(m_LockedPanels), m_CurrentView, m_KeyActivated);
+                m_AlarmOn, new ArrayList<>(m_LockedPanels), m_CurrentView, m_KeyActivated, m_UpDownEvent);
         m_FloorsButtonsPressed.clear();
+        m_UpDownEvent = null;
         return snapShot;
     }
 
@@ -123,6 +129,11 @@ public class ControlPanel extends GridPane
                 case ControlPanelGlobals.KEY_LOCK_DEACTIVATED:
                     m_KeyActivated = false;
                     break;
+                case ControlPanelGlobals.MANAGER_UP:
+                    m_UpDownEvent = new Pair<>(DirectionType.UP, (FloorNumber) message.getMessageData());
+                    break;
+                case ControlPanelGlobals.MANAGER_DOWN:
+                    m_UpDownEvent = new Pair<>(DirectionType.DOWN, (FloorNumber) message.getMessageData());
                 default:
                     throw new IllegalArgumentException("Unhandled Message Received.");
 

@@ -15,16 +15,6 @@ public class UpDownButton extends ElevatorButton
     super.setGraphic(onPath, offPath);
     this.setOnMousePressed((event) -> super.setGraphic(onImg));
     this.setOnMouseReleased((event) -> super.setGraphic(offImg));
-    this.setOnAction((event) -> {
-      if(this.up)
-      {
-        Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.MANAGER_UP));
-      }
-      else if(this.down)
-      {
-        Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.MANAGER_DOWN));
-      }
-  });
   }
 
 }
