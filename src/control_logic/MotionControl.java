@@ -55,7 +55,6 @@ class MotionControl implements LogicEntity
     speedProfile.add(0);
     speedProfile.add(-1);
     speedProfile.add(0);
-    System.out.println(motorSimulation.getSpeed());
     if(lastFloor > floorToGoTO.get())
     {
 //      if (motorSimulation.getSpeed().equals(speedProfile.get(speedProfile.size() / 2)))
