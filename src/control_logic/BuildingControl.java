@@ -31,8 +31,14 @@ public class BuildingControl implements LogicEntity
     private LobbyFloorNumberSignRenderer m_DestinationFloorRenderer;
     private ElevatorButtonPanelRenderer m_ButtonPanelRenderer;
     private ArrivalLightRenderer m_ArrivalLightRenderer;
-    private HashSet<FloorNumber> _floorRequests = new HashSet<>(); // TODO: Remove this for real algorithm
-    private LinkedList<FloorNumber> _acceptedRequests = new LinkedList<>();
+    //private HashSet<FloorNumber> _floorRequests = new HashSet<>(); // TODO: Remove this for real algorithm
+    private TreeSet<FloorNumber> _upRequests = new TreeSet<>();
+    private TreeSet<FloorNumber> _downRequests = new TreeSet<>(new Comparator<FloorNumber>() {
+        @Override
+        public int compare(FloorNumber o1, FloorNumber o2) {
+            return -o1.compareTo(o2);
+        }
+    }); // For requests in the direction the Cabin is not currently moving
     OutsideCabinRenderer m_CabinOutsideOne;
     OutsideCabinRenderer m_CabinOutsideTwo;
     OutsideCabinRenderer m_CabinOutsideThree;
@@ -109,17 +115,28 @@ public class BuildingControl implements LogicEntity
         // dumb algorithm just for demo, only works with one cabin and a single request at a time.
         CabinNumber cabin = new CabinNumber(1);
         FloorNumber floor = new FloorNumber(1);
+        CabinStatus cs = cabins.get(0).getStatus();
         if(m_ControlPanelSnapShot.manualFloorsPresses.size() != 0)
         {
             // Try to insert the floor request if it has not already been requested
             FloorNumber floorReq = new FloorNumber(m_ControlPanelSnapShot.manualFloorsPresses.get(0));
-            if (!_floorRequests.contains(floorReq)) {
-                _floorRequests.add(floorReq);
-                _acceptedRequests.add(floorReq);
+            DirectionType dir = cs.getDirection();
+            if (floorReq.get() > cs.getLastFloor().get()) {
+                if (floorReq.get() < cs.getDestination().get() && dir == DirectionType.UP) {
+                    cabins.get(0).setDestination(floorReq);
+                    _upRequests.add(cs.getDestination());
+                }
+                else _upRequests.add(floorReq);
+            }
+            else if (floorReq.get() < cs.getLastFloor().get()) {
+                if (floorReq.get() > cs.getDestination().get() && dir == DirectionType.DOWN) {
+                    cabins.get(0).setDestination(floorReq);
+                    _downRequests.add(cs.getDestination());
+                }
+                else _downRequests.add(floorReq);
             }
             //cabins.get(0).setDestination(new FloorNumber(m_ControlPanelSnapShot.manualFloorsPresses.get(0)));
         }
-        CabinStatus cs = cabins.get(0).getStatus();
         m_FloorSignRenderer.updateFloorNumber(cs.getLastFloor());
         m_CabinOutsideOne.updateYLocation(cs.getLastFloor());
         if(cs.getDestination().get() > 0) {
@@ -161,17 +178,34 @@ public class BuildingControl implements LogicEntity
 
         }
 
-        for(FloorNumber i : _acceptedRequests) m_ButtonPanelRenderer.turnOnFloorButton(i);
+        for(FloorNumber i : _upRequests) m_ButtonPanelRenderer.turnOnFloorButton(i);
+        for(FloorNumber i : _downRequests) m_ButtonPanelRenderer.turnOnFloorButton(i);
         // If this is true, the cabin is both stopped and the doors are closed so it is safe to
         // assign it a new destination if there is one
         if(cs.getMotionStatus() == MotionStatusTypes.STOPPED &&
                 _doorControl.getStatus(floor, cabin) == DoorStatusType.CLOSED) {
-            if (_acceptedRequests.size() > 0) {
-                FloorNumber floorReq = _acceptedRequests.poll();
-                _floorRequests.remove(floorReq);
+            DirectionType dir = cs.getDirection();
+            //System.out.println(dir);
+            if (_upRequests.size() > 0 && dir == DirectionType.UP) {
+                FloorNumber floorReq = _upRequests.pollFirst();
                 cabins.get(0).setDestination(floorReq);
-                System.out.println("Remaining requests (in queue): " + _acceptedRequests);
-
+                //System.out.println("Remaining requests (in queue): " + _acceptedRequests);
+            }
+            else if (_downRequests.size() > 0 && dir == DirectionType.DOWN) {
+                FloorNumber floorReq = _downRequests.pollFirst();
+                cabins.get(0).setDestination(floorReq);
+            }
+            else {
+                int numDownReqs = _downRequests.size();
+                int numUpReqs = _upRequests.size();
+                if (numDownReqs > numUpReqs && numDownReqs > 0) {
+                    FloorNumber floorReq = _downRequests.pollFirst();
+                    cabins.get(0).setDestination(floorReq);
+                }
+                else if (numUpReqs > 0) {
+                    FloorNumber floorReq = _upRequests.pollFirst();
+                    cabins.get(0).setDestination(floorReq);
+                }
             }
         }
 

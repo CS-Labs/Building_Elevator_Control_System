@@ -1,6 +1,6 @@
 package named_types;
 
-public class FloorNumber
+public class FloorNumber implements Comparable<FloorNumber>
 {
     private int m_Floor;
     public FloorNumber(int floor) {m_Floor = floor;}
@@ -19,6 +19,11 @@ public class FloorNumber
         if(getClass() != obj.getClass()) return false;
         FloorNumber fn = (FloorNumber) obj;
         return (fn.m_Floor == this.m_Floor);
+    }
+
+    @Override
+    public int compareTo(FloorNumber other) {
+        return Integer.compare(m_Floor, other.m_Floor);
     }
 
     @Override
