@@ -1,5 +1,7 @@
 package application;
 
+
+
 import javafx.util.Pair;
 import named_types.DirectionType;
 import named_types.FloorNumber;
@@ -23,7 +25,7 @@ public class ControlPanel extends GridPane
     private boolean m_KeyActivated = false;
     private SceneManager m_ElevatorViewMgr = new SceneManager(); // Only on screen when viewing inside elevators.
     private SceneManager m_SystemOverviewMgr = new SceneManager(); // Only on screen when viewing system overview.
-    private Pair<DirectionType, FloorNumber> m_UpDownEvent = null;
+    private Pair<DirectionType, named_types.FloorNumber> m_UpDownEvent = new Pair<>(DirectionType.NONE, new FloorNumber(-1));
     ControlPanel()
     {
         GridPane constantPanel = m_SetupConstantPanel();
@@ -93,10 +95,11 @@ public class ControlPanel extends GridPane
     // No values should be passed by reference to the snap-shot.
     public ControlPanelSnapShot getSnapShot()
     {
+        Pair<DirectionType, FloorNumber> upDownEvent = new Pair<>(m_UpDownEvent.getKey(), m_UpDownEvent.getValue());
         ControlPanelSnapShot snapShot = new ControlPanelSnapShot(new ArrayList<>(m_FloorsButtonsPressed),
-                m_AlarmOn, new ArrayList<>(m_LockedPanels), m_CurrentView, m_KeyActivated, m_UpDownEvent);
+                m_AlarmOn, new ArrayList<>(m_LockedPanels), m_CurrentView, m_KeyActivated, upDownEvent);
         m_FloorsButtonsPressed.clear();
-        m_UpDownEvent = null;
+        m_UpDownEvent = new Pair<>(DirectionType.NONE, new FloorNumber(-1));;
         return snapShot;
     }
 
@@ -130,10 +133,11 @@ public class ControlPanel extends GridPane
                     m_KeyActivated = false;
                     break;
                 case ControlPanelGlobals.MANAGER_UP:
-                    m_UpDownEvent = new Pair<>(DirectionType.UP, (FloorNumber) message.getMessageData());
+                    m_UpDownEvent = new Pair<DirectionType, FloorNumber>(DirectionType.UP, (FloorNumber) message.getMessageData());
                     break;
                 case ControlPanelGlobals.MANAGER_DOWN:
-                    m_UpDownEvent = new Pair<>(DirectionType.DOWN, (FloorNumber) message.getMessageData());
+                    m_UpDownEvent = new Pair<DirectionType, FloorNumber>(DirectionType.DOWN, (FloorNumber) message.getMessageData());
+                    break;
                 default:
                     throw new IllegalArgumentException("Unhandled Message Received.");
 
