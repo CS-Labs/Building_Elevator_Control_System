@@ -6,4 +6,6 @@ public enum DirectionType {
     DOWN,
     UP,
     NONE;
+
 }
+

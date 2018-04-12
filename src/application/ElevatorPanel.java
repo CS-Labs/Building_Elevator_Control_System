@@ -25,9 +25,6 @@ class ElevatorPanel extends GridPane
     private GridPane m_CreateButtonPanel() {
         GridPane buttonPanel = new GridPane();
         ImageView image = new ImageView("/resources/img/CCTV_Views/elevator/elevatorFloorPanel/buttonPanel.png");
-   //     image.setFitHeight(320);
- //       image.setFitWidth(100);
-      //  image.setPreserveRatio(true);
         BackgroundImage backgroundImg = new BackgroundImage(image.getImage(), BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, null, new BackgroundSize(200, 400, false, false, false, false));
         buttonPanel.setBackground(new Background(backgroundImg));
         buttonPanel.setPadding(new Insets(10, 10, 10, 10));

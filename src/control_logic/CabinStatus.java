@@ -19,7 +19,7 @@ class CabinStatus
     CabinStatus(CabinNumber cn) {
         this.direction = DirectionType.NONE;
         // if zero, no destination
-        this.destination = new FloorNumber(0);
+        this.destination = new FloorNumber(-1);
         this.lastFloor = new FloorNumber(1);
         this.cabinNumber = cn;
         this.moving = MotionStatusTypes.STOPPED;
@@ -50,4 +50,10 @@ class CabinStatus
     public void setLastFloor(FloorNumber fn) {this.lastFloor = fn;}
     public void setRequests(CabinRequests cr){this.cabinrequests = cr;}
 
+    // For debugging.
+    @Override
+    public String toString() {
+        return "\nDirection: " + this.direction + "\n moving: " + this.moving + "\n destination" +
+                ": " + this.destination + "\n last floor: " + this.lastFloor + "\n requests: " + this.cabinrequests;
+    }
 }

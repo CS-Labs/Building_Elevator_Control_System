@@ -1,21 +1,25 @@
 package application;
 
-import named_types.ViewTypes;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.ResourceBundle;
+
 import engine.Engine;
 import engine.Message;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.ResourceBundle;
+import named_types.ViewTypes;
 
 public class SystemOverviewPanel implements Initializable
 {
@@ -25,13 +29,14 @@ public class SystemOverviewPanel implements Initializable
   @FXML RadioButton viewThree;
   @FXML RadioButton viewFour;
   @FXML RadioButton overview;
-  @FXML
+  @FXML 
   Pane lockPane;
   @FXML Button fireAlarm;
   // List of boolean values where each index correspond to the index+1 elevator panel and the boolean value
   // corresponds to whether said elevator panel is locked or not.
   ArrayList<Boolean> m_LockedPanels = new ArrayList<>(Arrays.asList(false, false, false, false));
   boolean m_On = false;
+  int m_floorSelected = 0;
 
 
   @Override

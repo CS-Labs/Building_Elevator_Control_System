@@ -7,6 +7,11 @@ public class FloorNumber
     public int get() {return m_Floor;}
 
     @Override
+    public int hashCode() {
+        return Integer.hashCode(m_Floor);
+    }
+
+    @Override
     public boolean equals(Object obj) {
 
         if(obj == null) return false;
@@ -17,7 +22,7 @@ public class FloorNumber
     }
 
     @Override
-    public int hashCode() {
-        return this.get();
+    public String toString() {
+        return ""+m_Floor;
     }
 }

@@ -6,10 +6,11 @@ public class MotorSimulation
 {
 
   private Speed speed;
-  private double loc = 1000;//bottom floor, might have to change depending how big the GUI is
+  private double loc = 370;//top of the cabin when it is on the bottom floor
   //TODO implement me.
   MotorSimulation()
   {
+    speed = new Speed(0);
   }
 
   public double getLocation()
@@ -29,7 +30,6 @@ public class MotorSimulation
     this.speed = speed;
   }
 
-  //why do we have Speed(class/type)?
   public Speed getSpeed()
   {
     return speed;

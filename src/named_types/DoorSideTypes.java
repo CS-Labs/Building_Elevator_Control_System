@@ -4,4 +4,5 @@ public enum DoorSideTypes
 {
     LEFT,
     RIGHT;
+
 }

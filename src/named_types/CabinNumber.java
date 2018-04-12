@@ -17,6 +17,9 @@ public class CabinNumber
     }
 
     @Override
+    public String toString() {  return "" + m_CabinNumber;}
+
+    @Override
     public int hashCode() {
         return this.get();
     }
