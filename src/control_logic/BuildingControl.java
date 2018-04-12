@@ -5,6 +5,7 @@ import application.ControlPanelSnapShot;
 import engine.LogicEntity;
 import engine.RenderEntity;
 import engine.SceneManager;
+import javafx.util.Pair;
 import named_types.*;
 
 import java.util.*;
@@ -155,8 +156,11 @@ public class BuildingControl implements LogicEntity
         if(cs.getDestination().equals(cs.getLastFloor()) && cs.getMotionStatus() == MotionStatusTypes.STOPPED) // WE MADE IT
         {
             m_ButtonPanelRenderer.turnOffFloorButton(cs.getDestination());
+            /*
             double innerPercentage = _doorControl.getInnerDoorsPercentageOpen(cabin);
             double outerPercentage = _doorControl.getOuterDoorsPercentageOpen(floor, cabin);
+            */
+            Pair<Double, Double> percentages = _doorControl.getInnerOuterDoorPercentageOpen(floor, cabin);
             DoorStatusType status = _doorControl.getStatus(floor, cabin);
             if(!wasOpened)
             {
@@ -169,10 +173,10 @@ public class BuildingControl implements LogicEntity
                 _doorControl.close(floor,cabin);
                 m_ArrivalLightRenderer.setArrivalLightState(ArrivalLightStates.NO_ARRIVAL);
             }
-            m_InsideDoorLeft.update(innerPercentage, status);
-            m_InsideDoorRight.update(innerPercentage, status);
-            m_OutsideDoorLeft.update(outerPercentage, status);
-            m_OutsideDoorRight.update(outerPercentage, status);
+            m_InsideDoorLeft.update(percentages.getKey(), status);
+            m_InsideDoorRight.update(percentages.getKey(), status);
+            m_OutsideDoorLeft.update(percentages.getValue(), status);
+            m_OutsideDoorRight.update(percentages.getValue(), status);
             doorCloseTime += deltaSeconds;
             //if(doorCloseTime > 15)
             if (doorCloseTime > 15 && _doorControl.getStatus(floor, cabin) == DoorStatusType.OPENED)

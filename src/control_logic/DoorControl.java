@@ -89,13 +89,8 @@ class DoorControl implements LogicEntity {
         return _lobbyMotors[floorNumber.get()][cabinNumber.get()].getStatus();
     }
 
-    public double getOuterDoorsPercentageOpen(FloorNumber floorNumber, CabinNumber cabinNumber) {
-        return _lobbyMotors[floorNumber.get()][cabinNumber.get()].getOpenPercentage();
+    public Pair<Double, Double> getInnerOuterDoorPercentageOpen(FloorNumber floor, CabinNumber cabin) {
+        return new Pair<>(_cabinMotors[cabin.get()].getOpenPercentage(),
+                _lobbyMotors[floor.get()][cabin.get()].getOpenPercentage());
     }
-
-    public double getInnerDoorsPercentageOpen(CabinNumber cabinNumber) {
-        return _cabinMotors[cabinNumber.get()].getOpenPercentage();
-    }
-
-
 }
