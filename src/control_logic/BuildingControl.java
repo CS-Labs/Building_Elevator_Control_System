@@ -33,6 +33,23 @@ public class BuildingControl implements LogicEntity
     private ArrivalLightRenderer m_ArrivalLightRenderer;
     private HashSet<FloorNumber> _floorRequests = new HashSet<>(); // TODO: Remove this for real algorithm
     private LinkedList<FloorNumber> _acceptedRequests = new LinkedList<>();
+    OutsideCabinRenderer m_CabinOutsideOne;
+    OutsideCabinRenderer m_CabinOutsideTwo;
+    OutsideCabinRenderer m_CabinOutsideThree;
+    OutsideCabinRenderer m_CabinOutsideFour;
+
+    HashMap<FloorNumber, Double> floorsToYLoc = new HashMap<FloorNumber, Double>() {{
+        put(new FloorNumber(1), 360.0);
+        put(new FloorNumber(2), 320.0);
+        put(new FloorNumber(3), 280.0);
+        put(new FloorNumber(4), 240.0);
+        put(new FloorNumber(5), 200.0);
+        put(new FloorNumber(6), 160.0);
+        put(new FloorNumber(7), 120.0);
+        put(new FloorNumber(8), 80.0);
+        put(new FloorNumber(9), 40.0);
+        put(new FloorNumber(10), 0.0);
+    }};
 
     // TODO Implement this better? This is just for the demo.
     private double doorCloseTime = 5.0;
@@ -104,6 +121,7 @@ public class BuildingControl implements LogicEntity
         }
         CabinStatus cs = cabins.get(0).getStatus();
         m_FloorSignRenderer.updateFloorNumber(cs.getLastFloor());
+        m_CabinOutsideOne.updateYLocation(cs.getLastFloor());
         if(cs.getDestination().get() > 0) {
             m_DestinationFloorRenderer.setFloorNumber(cs.getDestination());
             if (cs.getDestination().get() != previousDest)
@@ -213,10 +231,16 @@ public class BuildingControl implements LogicEntity
 
         m_SystemOverviewMgr.add(new BuildingBackgroundRenderer(0,0,4,1000,400));
         for(int i = 0; i < 10; i++) m_SystemOverviewMgr.add(new ArrowButtonRenderer(ArrowButtonStates.NOTHING_PRESSED, 950, i*40, 3, 32,38));
-        m_SystemOverviewMgr.add(new OutsideCabinRenderer(120,365,3,40,35));
-        m_SystemOverviewMgr.add(new OutsideCabinRenderer(260,365,3,40,35));
-        m_SystemOverviewMgr.add(new OutsideCabinRenderer(710,365,3,40,35));
-        m_SystemOverviewMgr.add(new OutsideCabinRenderer(855,365,3,40,35));
+
+        m_CabinOutsideOne = new OutsideCabinRenderer(120,365,3,40,35);
+        m_CabinOutsideTwo = new OutsideCabinRenderer(260,365,3,40,35);
+        m_CabinOutsideThree = new OutsideCabinRenderer(710,365,3,40,35);
+        m_CabinOutsideFour = new OutsideCabinRenderer(855,365,3,40,35);
+
+        m_SystemOverviewMgr.add(m_CabinOutsideOne);
+        m_SystemOverviewMgr.add(m_CabinOutsideTwo);
+        m_SystemOverviewMgr.add(m_CabinOutsideThree);
+        m_SystemOverviewMgr.add(m_CabinOutsideFour);
 
     }
 
@@ -456,6 +480,7 @@ public class BuildingControl implements LogicEntity
         double m_XPos;
         double m_YPos;
         double m_Depth;
+
         OutsideCabinRenderer(int x, int y, int d, int w, int h)
         {
             m_XPos = x;
@@ -466,7 +491,7 @@ public class BuildingControl implements LogicEntity
             setWidthHeight(w, h);
         }
 
-        public void updateYLocation(int y) {m_YPos = y;}
+        public void updateYLocation(FloorNumber n) {m_YPos = floorsToYLoc.get(n);}
 
         @Override
         public void pulse(double deltaSeconds) {setLocationXYDepth(m_XPos, m_YPos , m_Depth);}
