@@ -16,4 +16,8 @@ public class FloorNumber
         return (fn.m_Floor == this.m_Floor);
     }
 
+    @Override
+    public int hashCode() {
+        return this.get();
+    }
 }
