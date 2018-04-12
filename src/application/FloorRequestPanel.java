@@ -46,22 +46,12 @@ public class FloorRequestPanel extends GridPane
         String upOff = "/resources/img/CCTV_Views/elevator/cabin/directionLights/upOFF.png";
         String downOff = "/resources/img/CCTV_Views/elevator/cabin/directionLights/downOFF.png";
         //Add the up and down buttons.
-        UpDownButton upButton = new UpDownButton(upOn, upOff, true, false);
-        UpDownButton downButton = new UpDownButton(downOn, downOff, false, true);
+        UpDownButton upButton = new UpDownButton(upOn, upOff);
+        UpDownButton downButton = new UpDownButton(downOn, downOff);
 
         // Send whether the up/down arrow was pressed and what floor the press took place on.
-        upButton.setOnAction((event) -> {
-            if(upButton.up)
-            {
-                Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.MANAGER_UP, m_ActiveFloor));
-            }
-            else if(upButton.down)
-            {
-                Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.MANAGER_DOWN, m_ActiveFloor));
-            }
-        });
-
-
+        upButton.setOnAction((event) -> {Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.MANAGER_UP, m_ActiveFloor));});
+        downButton.setOnAction((event) -> {Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.MANAGER_DOWN, m_ActiveFloor));});
 
         buttonPanel.add(upButton, 1, 0,5,1);
         buttonPanel.add(downButton, 1, 1,5,1);

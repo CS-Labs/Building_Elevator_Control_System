@@ -25,5 +25,4 @@ public class ControlPanelSnapShot {
         this.isKeyLocked = isKeyLocked;
         this.upDownEvent = event;
     }
-
 }

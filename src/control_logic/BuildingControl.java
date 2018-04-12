@@ -2,7 +2,6 @@ package control_logic;
 
 import application.ControlPanel;
 import application.ControlPanelSnapShot;
-import application.SystemOverviewPanel;
 import engine.LogicEntity;
 import engine.RenderEntity;
 import engine.SceneManager;
@@ -33,10 +32,10 @@ public class BuildingControl implements LogicEntity
     private ArrivalLightRenderer m_ArrivalLightRenderer;
     private HashSet<FloorNumber> _floorRequests = new HashSet<>(); // TODO: Remove this for real algorithm
     private LinkedList<FloorNumber> _acceptedRequests = new LinkedList<>();
-    OutsideCabinRenderer m_CabinOutsideOne;
-    OutsideCabinRenderer m_CabinOutsideTwo;
-    OutsideCabinRenderer m_CabinOutsideThree;
-    OutsideCabinRenderer m_CabinOutsideFour;
+    private OutsideCabinRenderer m_CabinOutsideOne;
+    private OutsideCabinRenderer m_CabinOutsideTwo;
+    private OutsideCabinRenderer m_CabinOutsideThree;
+    private OutsideCabinRenderer m_CabinOutsideFour;
 
     HashMap<FloorNumber, Double> floorsToYLoc = new HashMap<FloorNumber, Double>() {{
         put(new FloorNumber(1), 360.0);
@@ -105,6 +104,10 @@ public class BuildingControl implements LogicEntity
         // Potentially update views.
         m_UpdateViewCheck(m_ControlPanelSnapShot.currentView);
 
+        if(m_ControlPanelSnapShot.upDownEvent.getKey() != DirectionType.NONE)
+        {
+            cabins.get(0).setDestination(m_ControlPanelSnapShot.upDownEvent.getValue());
+        }
 
         // dumb algorithm just for demo, only works with one cabin and a single request at a time.
         CabinNumber cabin = new CabinNumber(1);
@@ -174,6 +177,8 @@ public class BuildingControl implements LogicEntity
 
             }
         }
+
+
 
         // End dumb algorithm
     }
