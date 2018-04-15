@@ -59,16 +59,14 @@ public class OpticalInterferenceDetector
             {
               if(x >= (minInsideX + amountToAdd) && x <= (maxInsideX - amountToAdd))
               {
-                _sensors.getDoorControl().interferenceDetected(true);
-                //_sensors.getDoorControl().reOpen(floorNum, cabinNum);
+                _sensors.getDoorControl().interferenceDetected(true, cabinNum.get());
               }
             }
             else if(outer)
             {
               if(x >= (minOutsideX + amountToAdd) && x <= (maxOutsideX - amountToAdd))
               {
-                _sensors.getDoorControl().interferenceDetected(true);
-                //_sensors.getDoorControl().reOpen(floorNum, cabinNum);
+                _sensors.getDoorControl().interferenceDetected(true, cabinNum.get());
               }
             }
           }

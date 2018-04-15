@@ -92,7 +92,7 @@ public class BuildingControl implements LogicEntity
         m_signalInterests();
     }
     
-    public void interferenceDetected(boolean interference)
+    public void interferenceDetected(boolean interference, int cabin)
     {
       this.interference.set(interference);
     }

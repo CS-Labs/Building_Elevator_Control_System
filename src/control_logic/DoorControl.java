@@ -56,10 +56,10 @@ class DoorControl implements LogicEntity {
         _sensors = new Sensors(this);
     }
     
-    void interferenceDetected(boolean interference)
+    void interferenceDetected(boolean interference, int cabin)
     {
       this.interference.set(interference);
-      _buildingControl.interferenceDetected(true);
+      _buildingControl.interferenceDetected(true, cabin);
     }
     
     DoorStatusType getCurrStatus(int cabinNumber)
