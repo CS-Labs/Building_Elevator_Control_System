@@ -53,6 +53,8 @@ public class BuildingControl implements LogicEntity
     private Helper m_Helper;
     private int m_CurrCabin = 1;
     private AtomicBoolean interference = new AtomicBoolean(false);
+    private AtomicBoolean alarmActivated = new AtomicBoolean(false);
+    private BuildingFireAlarm alarm;
 
     HashMap<FloorNumber, Double> floorsToYLoc = new HashMap<FloorNumber, Double>() {{
         put(new FloorNumber(1), 360.0);
@@ -90,6 +92,7 @@ public class BuildingControl implements LogicEntity
         _alwaysActive.activateAll();
         m_Helper = new Helper();
         m_signalInterests();
+        alarm = new BuildingFireAlarm();
     }
     
     public void interferenceDetected(boolean interference, int cabin)
@@ -110,6 +113,8 @@ public class BuildingControl implements LogicEntity
     private void m_signalInterests()
     {
         Engine.getMessagePump().signalInterest(ControlPanelGlobals.CHANGE_VIEW, m_Helper);
+        Engine.getMessagePump().signalInterest(ControlPanelGlobals.ALARM_ON, m_Helper);
+        Engine.getMessagePump().signalInterest(ControlPanelGlobals.ALARM_OFF, m_Helper);
     }
 
 
@@ -152,26 +157,42 @@ public class BuildingControl implements LogicEntity
         CabinNumber cabin = new CabinNumber(1);
         FloorNumber floor = new FloorNumber(1);
         CabinStatus cs = cabins.get(0).getStatus();
-        if(m_ControlPanelSnapShot.manualFloorsPresses.size() != 0)
+        //Process floor requests as usual if the fire alarm has not been activated.
+        if(!alarmActivated.get())
         {
-            // Try to insert the floor request if it has not already been requested
-            FloorNumber floorReq = new FloorNumber(m_ControlPanelSnapShot.manualFloorsPresses.get(0));
-            DirectionType dir = cs.getDirection();
-            if (floorReq.get() > cs.getLastFloor().get()) {
-                if (floorReq.get() < cs.getDestination().get() && dir == DirectionType.UP) {
-                    cabins.get(0).setDestination(floorReq);
-                    _upRequests.add(cs.getDestination());
-                }
-                else _upRequests.add(floorReq);
-            }
-            else if (floorReq.get() < cs.getLastFloor().get()) {
-                if (floorReq.get() > cs.getDestination().get() && dir == DirectionType.DOWN) {
-                    cabins.get(0).setDestination(floorReq);
-                    _downRequests.add(cs.getDestination());
-                }
-                else _downRequests.add(floorReq);
-            }
-            //cabins.get(0).setDestination(new FloorNumber(m_ControlPanelSnapShot.manualFloorsPresses.get(0)));
+          if(m_ControlPanelSnapShot.manualFloorsPresses.size() != 0)
+          {
+              // Try to insert the floor request if it has not already been requested
+              FloorNumber floorReq = new FloorNumber(m_ControlPanelSnapShot.manualFloorsPresses.get(0));
+              DirectionType dir = cs.getDirection();
+              if (floorReq.get() > cs.getLastFloor().get()) {
+                  if (floorReq.get() < cs.getDestination().get() && dir == DirectionType.UP) {
+                      cabins.get(0).setDestination(floorReq);
+                      _upRequests.add(cs.getDestination());
+                  }
+                  else _upRequests.add(floorReq);
+              }
+              else if (floorReq.get() < cs.getLastFloor().get()) {
+                  if (floorReq.get() > cs.getDestination().get() && dir == DirectionType.DOWN) {
+                      cabins.get(0).setDestination(floorReq);
+                      _downRequests.add(cs.getDestination());
+                  }
+                  else _downRequests.add(floorReq);
+              }
+              //cabins.get(0).setDestination(new FloorNumber(m_ControlPanelSnapShot.manualFloorsPresses.get(0)));
+          }
+        }
+        //The fire alarm has been activated, so don't process any floor requests. Send the elevator to the first floor.
+        else if(alarmActivated.get())
+        {
+          //Cancel all requests.
+          for(int q = 0; q < 10; q ++)
+          {
+            m_ButtonPanelRenderer.turnOffFloorButton(new FloorNumber(q + 1));
+          }
+          _upRequests.clear();
+          _downRequests.clear();
+          _downRequests.add(new FloorNumber(1));
         }
         m_FloorSignRenderer.updateFloorNumber(cs.getLastFloor());
         m_CabinOutsideOne.updateYLocation(cs.getLastFloor());
@@ -214,6 +235,7 @@ public class BuildingControl implements LogicEntity
                 wasOpened = true;
                 doorCloseTime = 0.0;
             }
+            //An interference was detected by the Optical Interference Detector, so switch from closing to opening door.
             if(interference.get())
             {
               doorCloseTime = 0;
@@ -616,6 +638,12 @@ public class BuildingControl implements LogicEntity
                       m_CurrCabin = 4;
                     }
                     break;
+                case ControlPanelGlobals.ALARM_ON:
+                  alarmActivated.set(true);
+                  break;
+                case ControlPanelGlobals.ALARM_OFF:
+                  alarmActivated.set(false);
+                  break;
                 default:
                     throw new IllegalArgumentException("Unhandled Message Received.");
 

@@ -44,3 +44,5 @@ Flower Pot Image:
 http://hdimagelib.com/flower+pot+clipart+png
 Fonts created with:  
 https://fontmeme.com/fonts/ds-digital-font/  
+For fire alarm sound effect:
+http://soundbible.com/1550-Fire-Alarm.html
