@@ -1,14 +1,19 @@
 package control_logic;
 
 import application.ControlPanel;
+import application.ControlPanelGlobals;
 import application.ControlPanelSnapShot;
+import engine.Engine;
 import engine.LogicEntity;
+import engine.Message;
+import engine.MessageHandler;
 import engine.RenderEntity;
 import engine.SceneManager;
 import javafx.util.Pair;
 import named_types.*;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BuildingControl implements LogicEntity
 {
@@ -45,6 +50,9 @@ public class BuildingControl implements LogicEntity
     private OutsideCabinRenderer m_CabinOutsideTwo;
     private OutsideCabinRenderer m_CabinOutsideThree;
     private OutsideCabinRenderer m_CabinOutsideFour;
+    private Helper m_Helper;
+    private int m_CurrCabin = 1;
+    private AtomicBoolean interference = new AtomicBoolean(false);
 
     HashMap<FloorNumber, Double> floorsToYLoc = new HashMap<FloorNumber, Double>() {{
         put(new FloorNumber(1), 360.0);
@@ -76,10 +84,32 @@ public class BuildingControl implements LogicEntity
         // TODO: What scene do we want to start in? What ever we choose update below.
         m_ElevatorViewMng.activateAll();
         // TODO maybe remove below for something more permanent?
-        _doorControl = new DoorControl(10, 4);
+        _doorControl = new DoorControl(this, 10, 4);
         _alwaysActive = new SceneManager();
         _alwaysActive.add(_doorControl);
         _alwaysActive.activateAll();
+        m_Helper = new Helper();
+        m_signalInterests();
+    }
+    
+    public void interferenceDetected(boolean interference)
+    {
+      this.interference.set(interference);
+    }
+    
+    public Cabin getCabin(int cabinNum)
+    {
+      return cabins.get((cabinNum - 1));
+    }
+    
+    public int getCurrCabin()
+    {
+      return m_CurrCabin;
+    }
+    
+    private void m_signalInterests()
+    {
+        Engine.getMessagePump().signalInterest(ControlPanelGlobals.CHANGE_VIEW, m_Helper);
     }
 
 
@@ -184,7 +214,12 @@ public class BuildingControl implements LogicEntity
                 wasOpened = true;
                 doorCloseTime = 0.0;
             }
-
+            if(interference.get())
+            {
+              doorCloseTime = 0;
+              wasOpened = false;
+              interference.set(false);
+            }
         }
 
         for(FloorNumber i : _upRequests) m_ButtonPanelRenderer.turnOnFloorButton(i);
@@ -556,7 +591,38 @@ public class BuildingControl implements LogicEntity
         public void pulse(double deltaSeconds) {
         }
     }
+    class Helper implements MessageHandler
+    {
+        @Override
+        public void handleMessage(Message message)
+        {
+            switch(message.getMessageName()) {
+                case ControlPanelGlobals.CHANGE_VIEW:
+                    ViewTypes m_CurrentView = (ViewTypes) message.getMessageData();
+                    if(m_CurrentView == ViewTypes.ELEVATOR_ONE)
+                    {
+                      m_CurrCabin = 1;
+                    }
+                    else if(m_CurrentView == ViewTypes.ELEVATOR_TWO)
+                    {
+                      m_CurrCabin = 2;
+                    }
+                    else if(m_CurrentView == ViewTypes.ELEVATOR_THREE)
+                    {
+                      m_CurrCabin = 3;
+                    }
+                    else if(m_CurrentView == ViewTypes.ELEVATOR_FOUR)
+                    {
+                      m_CurrCabin = 4;
+                    }
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unhandled Message Received.");
 
+            }
+        }
+
+    }
 
 
 
