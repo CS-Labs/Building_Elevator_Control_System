@@ -77,6 +77,7 @@ class MotionControl implements LogicEntity
     }
     else
     {
+//      direction = DirectionType.NONE;
       motionStatus = MotionStatusTypes.STOPPED;
       motorSimulation.setSpeed(new Speed(0.0));
       //if we are approaching the desired floor, we should decrease speed.

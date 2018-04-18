@@ -78,9 +78,12 @@ public class BuildingControl implements LogicEntity
     {
         // add cabins
         //TODO setback to four cabins after the demo.
-        for(int i = 0; i < 1; i+=1){
+        for(int i = 0; i < 4; i+=1){
             cabins.add(i,new Cabin(new CabinNumber(i+1)));
         }
+
+        ea = new ElevatorAlgorithm(cabins);
+
         m_ControlPanel = controlPanel;
         m_ConstructScenes();
         // TODO: What scene do we want to start in? What ever we choose update below.
@@ -122,27 +125,20 @@ public class BuildingControl implements LogicEntity
     public void process(double deltaSeconds)
     {
         ArrayList<CabinStatus> statuses = new ArrayList<>();
-        ArrayList<FloorNumber> nextFloors = new ArrayList<>();
+        ArrayList<FloorNumber> nextFloors;
 
         for(Cabin cabin : cabins){
             CabinStatus status = cabin.getStatus();
 
             statuses.add(status);
-
+//            System.out.println(status.getLastFloor().get() + " " + status.getDestination().get());
             if(status.getLastFloor() == status.getDestination() && status.getMotionStatus() == MotionStatusTypes.STOPPED){
+                System.out.println("pop");
                 status.getAllActiveRequests().removeRequest(status.getLastFloor());
                 floorrequests.notifyOfArrival(status.getLastFloor(),status.getCabinNumber(),status.getDirection());
+                ea.pop(status);
             }
         }
-
-        /* TODO implement algorithm
-        nextFloors = ea.schedule(statuses,floorrequests.getFloorRequests(),fire);
-
-        for(int i = 0; i < 4; i+=1){
-            cabins.get(i).getStatus().setDestination(nextFloors.get(i));
-        }
-        */
-
 
         m_ControlPanelSnapShot = m_ControlPanel.getSnapShot(); // Get latest snap-shot.
         // Potentially update views.
@@ -153,129 +149,158 @@ public class BuildingControl implements LogicEntity
             cabins.get(0).setDestination(m_ControlPanelSnapShot.upDownEvent.getValue());
         }
 
-        // dumb algorithm just for demo, only works with one cabin and a single request at a time.
-        CabinNumber cabin = new CabinNumber(1);
-        FloorNumber floor = new FloorNumber(1);
-        CabinStatus cs = cabins.get(0).getStatus();
-        //Process floor requests as usual if the fire alarm has not been activated.
-        if(!alarmActivated.get())
-        {
-          if(m_ControlPanelSnapShot.manualFloorsPresses.size() != 0)
-          {
-              // Try to insert the floor request if it has not already been requested
-              FloorNumber floorReq = new FloorNumber(m_ControlPanelSnapShot.manualFloorsPresses.get(0));
-              DirectionType dir = cs.getDirection();
-              if (floorReq.get() > cs.getLastFloor().get()) {
-                  if (floorReq.get() < cs.getDestination().get() && dir == DirectionType.UP) {
-                      cabins.get(0).setDestination(floorReq);
-                      _upRequests.add(cs.getDestination());
-                  }
-                  else _upRequests.add(floorReq);
-              }
-              else if (floorReq.get() < cs.getLastFloor().get()) {
-                  if (floorReq.get() > cs.getDestination().get() && dir == DirectionType.DOWN) {
-                      cabins.get(0).setDestination(floorReq);
-                      _downRequests.add(cs.getDestination());
-                  }
-                  else _downRequests.add(floorReq);
-              }
-              //cabins.get(0).setDestination(new FloorNumber(m_ControlPanelSnapShot.manualFloorsPresses.get(0)));
-          }
-        }
-        //The fire alarm has been activated, so don't process any floor requests. Send the elevator to the first floor.
-        else if(alarmActivated.get())
-        {
-          //Cancel all requests.
-          for(int q = 0; q < 10; q ++)
-          {
-            m_ButtonPanelRenderer.turnOffFloorButton(new FloorNumber(q + 1));
-          }
-          _upRequests.clear();
-          _downRequests.clear();
-          _downRequests.add(new FloorNumber(1));
-        }
-        m_FloorSignRenderer.updateFloorNumber(cs.getLastFloor());
-        m_CabinOutsideOne.updateYLocation(cs.getLastFloor());
-        if(cs.getDestination().get() > 0) {
-            m_DestinationFloorRenderer.setFloorNumber(cs.getDestination());
-            if (cs.getDestination().get() != previousDest)
-            {
-                previousDest = cs.getDestination().get();
-                wasOpened = false;
-            }
-        }
-        if(cs.getDestination().equals(cs.getLastFloor()) && cs.getMotionStatus() == MotionStatusTypes.STOPPED) // WE MADE IT
-        {
-            m_ButtonPanelRenderer.turnOffFloorButton(cs.getDestination());
-            /*
-            double innerPercentage = _doorControl.getInnerDoorsPercentageOpen(cabin);
-            double outerPercentage = _doorControl.getOuterDoorsPercentageOpen(floor, cabin);
-            */
-            Pair<Double, Double> percentages = _doorControl.getInnerOuterDoorPercentageOpen(floor, cabin);
-            DoorStatusType status = _doorControl.getStatus(floor, cabin);
-            if(!wasOpened)
-            {
-                _doorControl.open(floor, cabin);
-                if(cs.getDirection() == DirectionType.UP) m_ArrivalLightRenderer.setArrivalLightState(ArrivalLightStates.ARRIVAL_GOING_UP);
-                if(cs.getDirection() == DirectionType.DOWN) m_ArrivalLightRenderer.setArrivalLightState(ArrivalLightStates.ARRIVAL_GOING_DOWN);
-            }
-            else
-            {
-                _doorControl.close(floor,cabin);
-                m_ArrivalLightRenderer.setArrivalLightState(ArrivalLightStates.NO_ARRIVAL);
-            }
-            m_InsideDoorLeft.update(percentages.getKey(), status);
-            m_InsideDoorRight.update(percentages.getKey(), status);
-            m_OutsideDoorLeft.update(percentages.getValue(), status);
-            m_OutsideDoorRight.update(percentages.getValue(), status);
-            doorCloseTime += deltaSeconds;
-            //if(doorCloseTime > 15)
-            if (doorCloseTime > 15 && _doorControl.getStatus(floor, cabin) == DoorStatusType.OPENED)
-            {
-                wasOpened = true;
-                doorCloseTime = 0.0;
-            }
-            //An interference was detected by the Optical Interference Detector, so switch from closing to opening door.
-            if(interference.get())
-            {
-              doorCloseTime = 0;
-              wasOpened = false;
-              interference.set(false);
-            }
-        }
+        if(!alarmActivated.get()) {
+            nextFloors = ea.schedule(statuses,floorrequests.getFloorRequests(),fire);
+//            for(FloorNumber n : nextFloors){
+//                System.out.print(n.get() + " ");
+//            }
+//            System.out.println("");
 
-        for(FloorNumber i : _upRequests) m_ButtonPanelRenderer.turnOnFloorButton(i);
-        for(FloorNumber i : _downRequests) m_ButtonPanelRenderer.turnOnFloorButton(i);
-        // If this is true, the cabin is both stopped and the doors are closed so it is safe to
-        // assign it a new destination if there is one
-        if(cs.getMotionStatus() == MotionStatusTypes.STOPPED &&
-                _doorControl.getStatus(floor, cabin) == DoorStatusType.CLOSED) {
-            DirectionType dir = cs.getDirection();
-            //System.out.println(dir);
-            if (_upRequests.size() > 0 && dir == DirectionType.UP) {
-                FloorNumber floorReq = _upRequests.pollFirst();
-                cabins.get(0).setDestination(floorReq);
-                //System.out.println("Remaining requests (in queue): " + _acceptedRequests);
-            }
-            else if (_downRequests.size() > 0 && dir == DirectionType.DOWN) {
-                FloorNumber floorReq = _downRequests.pollFirst();
-                cabins.get(0).setDestination(floorReq);
-            }
-            else {
-                int numDownReqs = _downRequests.size();
-                int numUpReqs = _upRequests.size();
-                if (numDownReqs > numUpReqs && numDownReqs > 0) {
-                    FloorNumber floorReq = _downRequests.pollFirst();
-                    cabins.get(0).setDestination(floorReq);
-                }
-                else if (numUpReqs > 0) {
-                    FloorNumber floorReq = _upRequests.pollFirst();
-                    cabins.get(0).setDestination(floorReq);
+            for(int i = 0; i < 4; i+=1){
+                if(cabins.get(i).getStat().getMotionStatus() == MotionStatusTypes.STOPPED){
+//                        && _doorControl.getStatus(floor, cabin) == DoorStatusType.CLOSED) {
+                    cabins.get(i).setDestination(nextFloors.get(i));
                 }
             }
         }
 
+//        m_FloorSignRenderer.updateFloorNumber(cs.getLastFloor());
+        m_CabinOutsideOne.updateYLocation(statuses.get(0).getLastFloor());
+        m_CabinOutsideTwo.updateYLocation(statuses.get(1).getLastFloor());
+        m_CabinOutsideThree.updateYLocation(statuses.get(2).getLastFloor());
+        m_CabinOutsideFour.updateYLocation(statuses.get(3).getLastFloor());
 
+        for(CabinStatus cs : statuses) {
+            if (cs.getDestination().get() > 0) {
+                m_DestinationFloorRenderer.setFloorNumber(cs.getDestination());
+                if (cs.getDestination().get() != previousDest) {
+                    previousDest = cs.getDestination().get();
+                    wasOpened = false;
+                }
+            }
+        }
+
+//        // dumb algorithm just for demo, only works with one cabin and a single request at a time.
+//        CabinNumber cabin = new CabinNumber(1);
+//        FloorNumber floor = new FloorNumber(1);
+//        CabinStatus cs = cabins.get(0).getStatus();
+//        //Process floor requests as usual if the fire alarm has not been activated.
+//        if(!alarmActivated.get())
+//        {
+//          if(m_ControlPanelSnapShot.manualFloorsPresses.size() != 0)
+//          {
+//              // Try to insert the floor request if it has not already been requested
+//              FloorNumber floorReq = new FloorNumber(m_ControlPanelSnapShot.manualFloorsPresses.get(0));
+//              DirectionType dir = cs.getDirection();
+//              if (floorReq.get() > cs.getLastFloor().get()) {
+//                  if (floorReq.get() < cs.getDestination().get() && dir == DirectionType.UP) {
+//                      cabins.get(0).setDestination(floorReq);
+//                      _upRequests.add(cs.getDestination());
+//                  }
+//                  else _upRequests.add(floorReq);
+//              }
+//              else if (floorReq.get() < cs.getLastFloor().get()) {
+//                  if (floorReq.get() > cs.getDestination().get() && dir == DirectionType.DOWN) {
+//                      cabins.get(0).setDestination(floorReq);
+//                      _downRequests.add(cs.getDestination());
+//                  }
+//                  else _downRequests.add(floorReq);
+//              }
+//              //cabins.get(0).setDestination(new FloorNumber(m_ControlPanelSnapShot.manualFloorsPresses.get(0)));
+//          }
+//        }
+//        //The fire alarm has been activated, so don't process any floor requests. Send the elevator to the first floor.
+//        else if(alarmActivated.get())
+//        {
+//          //Cancel all requests.
+//          for(int q = 0; q < 10; q ++)
+//          {
+//            m_ButtonPanelRenderer.turnOffFloorButton(new FloorNumber(q + 1));
+//          }
+//          _upRequests.clear();
+//          _downRequests.clear();
+//          _downRequests.add(new FloorNumber(1));
+//        }
+//        m_FloorSignRenderer.updateFloorNumber(cs.getLastFloor());
+//        m_CabinOutsideOne.updateYLocation(cs.getLastFloor());
+//        if(cs.getDestination().get() > 0) {
+//            m_DestinationFloorRenderer.setFloorNumber(cs.getDestination());
+//            if (cs.getDestination().get() != previousDest)
+//            {
+//                previousDest = cs.getDestination().get();
+//                wasOpened = false;
+//            }
+//        }
+//        if(cs.getDestination().equals(cs.getLastFloor()) && cs.getMotionStatus() == MotionStatusTypes.STOPPED) // WE MADE IT
+//        {
+//            m_ButtonPanelRenderer.turnOffFloorButton(cs.getDestination());
+//            /*
+//            double innerPercentage = _doorControl.getInnerDoorsPercentageOpen(cabin);
+//            double outerPercentage = _doorControl.getOuterDoorsPercentageOpen(floor, cabin);
+//            */
+//            Pair<Double, Double> percentages = _doorControl.getInnerOuterDoorPercentageOpen(floor, cabin);
+//            DoorStatusType status = _doorControl.getStatus(floor, cabin);
+//            if(!wasOpened)
+//            {
+//                _doorControl.open(floor, cabin);
+//                if(cs.getDirection() == DirectionType.UP) m_ArrivalLightRenderer.setArrivalLightState(ArrivalLightStates.ARRIVAL_GOING_UP);
+//                if(cs.getDirection() == DirectionType.DOWN) m_ArrivalLightRenderer.setArrivalLightState(ArrivalLightStates.ARRIVAL_GOING_DOWN);
+//            }
+//            else
+//            {
+//                _doorControl.close(floor,cabin);
+//                m_ArrivalLightRenderer.setArrivalLightState(ArrivalLightStates.NO_ARRIVAL);
+//            }
+//            m_InsideDoorLeft.update(percentages.getKey(), status);
+//            m_InsideDoorRight.update(percentages.getKey(), status);
+//            m_OutsideDoorLeft.update(percentages.getValue(), status);
+//            m_OutsideDoorRight.update(percentages.getValue(), status);
+//            doorCloseTime += deltaSeconds;
+//            //if(doorCloseTime > 15)
+//            if (doorCloseTime > 15 && _doorControl.getStatus(floor, cabin) == DoorStatusType.OPENED)
+//            {
+//                wasOpened = true;
+//                doorCloseTime = 0.0;
+//            }
+//            //An interference was detected by the Optical Interference Detector, so switch from closing to opening door.
+//            if(interference.get())
+//            {
+//              doorCloseTime = 0;
+//              wasOpened = false;
+//              interference.set(false);
+//            }
+//        }
+//
+//        for(FloorNumber i : _upRequests) m_ButtonPanelRenderer.turnOnFloorButton(i);
+//        for(FloorNumber i : _downRequests) m_ButtonPanelRenderer.turnOnFloorButton(i);
+//        // If this is true, the cabin is both stopped and the doors are closed so it is safe to
+//        // assign it a new destination if there is one
+//        if(cs.getMotionStatus() == MotionStatusTypes.STOPPED &&
+//                _doorControl.getStatus(floor, cabin) == DoorStatusType.CLOSED) {
+//            DirectionType dir = cs.getDirection();
+//            //System.out.println(dir);
+//            if (_upRequests.size() > 0 && dir == DirectionType.UP) {
+//                FloorNumber floorReq = _upRequests.pollFirst();
+//                cabins.get(0).setDestination(floorReq);
+//                //System.out.println("Remaining requests (in queue): " + _acceptedRequests);
+//            }
+//            else if (_downRequests.size() > 0 && dir == DirectionType.DOWN) {
+//                FloorNumber floorReq = _downRequests.pollFirst();
+//                cabins.get(0).setDestination(floorReq);
+//            }
+//            else {
+//                int numDownReqs = _downRequests.size();
+//                int numUpReqs = _upRequests.size();
+//                if (numDownReqs > numUpReqs && numDownReqs > 0) {
+//                    FloorNumber floorReq = _downRequests.pollFirst();
+//                    cabins.get(0).setDestination(floorReq);
+//                }
+//                else if (numUpReqs > 0) {
+//                    FloorNumber floorReq = _upRequests.pollFirst();
+//                    cabins.get(0).setDestination(floorReq);
+//                }
+//            }
+//        }
 
         // End dumb algorithm
     }

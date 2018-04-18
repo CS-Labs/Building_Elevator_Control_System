@@ -34,6 +34,10 @@ class Cabin
         return cabinstatus.getStatus();
     }
 
+    public CabinStatus getStat(){
+        return cabinstatus;
+    }
+
     public void lockPanel() {this.lock = true;}
     public void unlockPanel() {this.lock = false;}
     // missing stuff probably

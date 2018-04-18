@@ -11,7 +11,7 @@ public class FloorRequests{
     private ArrayList<CallButtons> buttons = new ArrayList<>();
     private ArrayList<ArrivalSignals> signals = new ArrayList<>();
     // this really depends on how often getfloorrequests is called and what we want the probability to be
-    private static final int REQUESTPROB = 25;
+    private static final double probability = .00025;
 
     public FloorRequests(){
         buttons.add(new CallButtons(ControlLogicGlobals.MINFLOOR, DirectionType.UP));
@@ -71,7 +71,8 @@ public class FloorRequests{
 
         Random r = new Random();
         for(CallButtons button : buttons){
-            if(r.nextInt(REQUESTPROB)==0 && !button.isPressed()) {
+            if(r.nextDouble() < probability && !button.isPressed()) {
+//                System.out.println("request");
                 button.setButtonPressedState(true);
                 newrequests.add(button.makeCopy());
             }
