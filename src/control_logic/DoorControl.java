@@ -28,9 +28,6 @@ class DoorControl implements LogicEntity {
     private Sensors _sensors;
     private HashSet<ElevatorDoorMotor> _simulatingMotors = new HashSet<>(); // Motors currently simulating movement
     private LinkedList<ElevatorDoorMotor> _completedSimulations = new LinkedList<>();
-    private BuildingControl _buildingControl;
-    private CabinNumber _currCabinNum;
-    private int _currCabin = 1;
     //Map cabins to their current status.
     private volatile Map<Integer, DoorStatusType> _statusMap = new HashMap<>();
     private AtomicBoolean interference = new AtomicBoolean(false);
@@ -51,39 +48,16 @@ class DoorControl implements LogicEntity {
         {
           _statusMap.put(j, DoorStatusType.CLOSED);
         }
-        _buildingControl = buildingControl;
         // Initialize sensors
         _sensors = new Sensors(this);
     }
     
-    void interferenceDetected(boolean interference, int cabin)
-    {
-      this.interference.set(interference);
-      _buildingControl.interferenceDetected(true, cabin);
-    }
-    
+
     DoorStatusType getCurrStatus(int cabinNumber)
     {
       return _statusMap.get(cabinNumber);
     }
-    
-    //The LastFloor will be the current floor its on when the doors are closing.
-    FloorNumber getFloorNum()
-    {
-      return _buildingControl.getCabin(_currCabin).getStatus().getLastFloor();
-    }
-    
-    CabinNumber getCabinNum()
-    {
-      _currCabinNum = _buildingControl.getCabin(getCurrCabin()).getStatus().getCabinNumber();
-      return _currCabinNum;
-    }
-    
-    int getCurrCabin()
-    {
-      _currCabin = _buildingControl.getCurrCabin();
-      return _currCabin;
-    }
+
 
     @Override
     public void process(double deltaSeconds) {
@@ -149,4 +123,6 @@ class DoorControl implements LogicEntity {
             _lobbyMotors[(floor.get() - 1)][(cabin.get() - 1)].getOpenPercentage());
       }
     }
+
+    public boolean interferenceDetected() {return _sensors.checkForInterference();}
 }

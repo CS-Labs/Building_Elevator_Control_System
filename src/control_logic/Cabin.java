@@ -14,7 +14,6 @@ class Cabin
     private CabinStatus cabinstatus;
     private CabinRequests cabinrequests;
     private MotionControl motioncontrol;
-    private boolean lock = false;
 
     // TODO: Implement me.
     public Cabin(CabinNumber cb) {
@@ -26,8 +25,7 @@ class Cabin
 
     // this updates requests, call this first then call status.getAllActiveRequests so that it doesnt update
     public CabinStatus getStatus() {
-        if(!lock) cabinrequests.getRequests();
-        cabinstatus.setRequests(cabinrequests);
+        cabinstatus.setRequests(cabinrequests.getRequests());
         cabinstatus.setLastFloor(motioncontrol.getLastFloor());
         cabinstatus.setMotionStatus(motioncontrol.getMotionStatus());
         cabinstatus.setDirection(motioncontrol.getDirection());
@@ -37,9 +35,7 @@ class Cabin
     public CabinStatus getStat(){
         return cabinstatus;
     }
-
-    public void lockPanel() {this.lock = true;}
-    public void unlockPanel() {this.lock = false;}
+    public void removeRequest(FloorNumber f) {cabinrequests.removeRequest(f);}
     // missing stuff probably
     public void setDestination(FloorNumber floor){
         this.cabinstatus.setDestination(floor);

@@ -61,17 +61,10 @@ public class SystemOverviewPanel implements Initializable
     offImg.setFitHeight(50);
     offImg.setFitWidth(50);
     fireAlarm.setGraphic(offImg);
-    fireAlarm.setOnAction((event) -> {
-      if(!m_On) {
-        fireAlarm.setGraphic(onImg);
-        Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.ALARM_ON));
-      }
-      else  {
-        fireAlarm.setGraphic(offImg);
-        Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.ALARM_OFF));
-      }
-      m_On = !m_On;
-
+    fireAlarm.setOnMousePressed((event) -> { fireAlarm.setGraphic(onImg); });
+    fireAlarm.setOnMouseReleased((event) -> {
+      fireAlarm.setGraphic(offImg);
+      Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.ALARM_PRESS));
     });
   }
 
@@ -90,6 +83,7 @@ public class SystemOverviewPanel implements Initializable
           Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.CHANGE_VIEW, m_MapToView(stringView)));
         }
       });
+    overview.setSelected(true);
 
   }
 

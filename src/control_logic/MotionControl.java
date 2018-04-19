@@ -101,7 +101,6 @@ class MotionControl implements LogicEntity
     return direction;
   }
 
-  // TODO: 4/9/2018
   public void setDestination(FloorNumber floor)
   {
     floorToGoTO = floor;

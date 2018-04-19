@@ -1,13 +1,8 @@
 package control_logic;
 
 import application.ControlPanel;
-import application.ControlPanelGlobals;
 import application.ControlPanelSnapShot;
-import engine.Engine;
 import engine.LogicEntity;
-import engine.Message;
-import engine.MessageHandler;
-import engine.RenderEntity;
 import engine.SceneManager;
 import javafx.util.Pair;
 import named_types.*;
@@ -18,296 +13,156 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class BuildingControl implements LogicEntity
 {
     private ElevatorAlgorithm ea;
-    private SceneManager m_SystemOverviewMgr = new SceneManager();
-    private SceneManager m_ElevatorViewMng = new SceneManager();
+
     private ControlPanelSnapShot m_ControlPanelSnapShot;
     private ControlPanel m_ControlPanel;
-    private ViewTypes m_PreviousView = ViewTypes.ELEVATOR_ONE; //TODO: What is our starting view.
+    private ViewTypes m_PreviousView = ViewTypes.OVERVIEW; //TODO: What is our starting view.
     private ArrayList<Cabin> cabins = new ArrayList<>();
     private FloorRequests floorrequests = new FloorRequests();
-    private boolean fire = false;
     private DoorControl _doorControl;
     private SceneManager _alwaysActive;
-    private DoorPanelRenderer m_InsideDoorLeft;
-    private DoorPanelRenderer m_InsideDoorRight;
-    private DoorPanelRenderer m_OutsideDoorLeft;
-    private DoorPanelRenderer m_OutsideDoorRight;
-    private FloorSignRenderer m_FloorSignRenderer;
-    private LobbyFloorNumberSignRenderer m_DestinationFloorRenderer;
-    private ElevatorButtonPanelRenderer m_ButtonPanelRenderer;
-    private ArrivalLightRenderer m_ArrivalLightRenderer;
-    //private HashSet<FloorNumber> _floorRequests = new HashSet<>(); // TODO: Remove this for real algorithm
-    private TreeSet<FloorNumber> _upRequests = new TreeSet<>();
-    private TreeSet<FloorNumber> _downRequests = new TreeSet<>(new Comparator<FloorNumber>() {
-        @Override
-        public int compare(FloorNumber o1, FloorNumber o2) {
-            return -o1.compareTo(o2);
-        }
-    }); // For requests in the direction the Cabin is not currently moving
-    private HashSet<FloorNumber> _floorRequests = new HashSet<>(); // TODO: Remove this for real algorithm
-    private LinkedList<FloorNumber> _acceptedRequests = new LinkedList<>();
-    private OutsideCabinRenderer m_CabinOutsideOne;
-    private OutsideCabinRenderer m_CabinOutsideTwo;
-    private OutsideCabinRenderer m_CabinOutsideThree;
-    private OutsideCabinRenderer m_CabinOutsideFour;
-    private Helper m_Helper;
-    private int m_CurrCabin = 1;
-    private AtomicBoolean interference = new AtomicBoolean(false);
-    private AtomicBoolean alarmActivated = new AtomicBoolean(false);
+    private RenderEntityManager m_RenderEntityManager;
+//    private AtomicBoolean interference = new AtomicBoolean(false);
     private BuildingFireAlarm alarm;
+    private ArrayList<CabinStatus> m_Statuses = new ArrayList<>();
+    private ArrayList<FloorNumber> m_NextFloors;
+    private boolean fire = false;
+    private boolean manualFireAlarmPress = false;
 
-    HashMap<FloorNumber, Double> floorsToYLoc = new HashMap<FloorNumber, Double>() {{
-        put(new FloorNumber(1), 360.0);
-        put(new FloorNumber(2), 320.0);
-        put(new FloorNumber(3), 280.0);
-        put(new FloorNumber(4), 240.0);
-        put(new FloorNumber(5), 200.0);
-        put(new FloorNumber(6), 160.0);
-        put(new FloorNumber(7), 120.0);
-        put(new FloorNumber(8), 80.0);
-        put(new FloorNumber(9), 40.0);
-        put(new FloorNumber(10), 0.0);
-    }};
 
-    // TODO Implement this better? This is just for the demo.
-    private double doorCloseTime = 5.0;
-    private boolean wasOpened = false;
+
     private int previousDest = -1;
 
     public BuildingControl(ControlPanel controlPanel)
     {
         // add cabins
-        //TODO setback to four cabins after the demo.
         for(int i = 0; i < 4; i+=1){
             cabins.add(i,new Cabin(new CabinNumber(i+1)));
         }
-
         ea = new ElevatorAlgorithm(cabins);
-
         m_ControlPanel = controlPanel;
-        m_ConstructScenes();
-        // TODO: What scene do we want to start in? What ever we choose update below.
-        m_ElevatorViewMng.activateAll();
-        // TODO maybe remove below for something more permanent?
         _doorControl = new DoorControl(this, 10, 4);
         _alwaysActive = new SceneManager();
         _alwaysActive.add(_doorControl);
         _alwaysActive.activateAll();
-        m_Helper = new Helper();
-        m_signalInterests();
         alarm = new BuildingFireAlarm();
+        m_RenderEntityManager = new RenderEntityManager();
+        m_RenderEntityManager.switchToSystemOverview();
+
     }
     
-    public void interferenceDetected(boolean interference, int cabin)
-    {
-      this.interference.set(interference);
-    }
-    
-    public Cabin getCabin(int cabinNum)
-    {
-      return cabins.get((cabinNum - 1));
-    }
-    
-    public int getCurrCabin()
-    {
-      return m_CurrCabin;
-    }
-    
-    private void m_signalInterests()
-    {
-        Engine.getMessagePump().signalInterest(ControlPanelGlobals.CHANGE_VIEW, m_Helper);
-        Engine.getMessagePump().signalInterest(ControlPanelGlobals.ALARM_ON, m_Helper);
-        Engine.getMessagePump().signalInterest(ControlPanelGlobals.ALARM_OFF, m_Helper);
-    }
 
 
     @Override
     public void process(double deltaSeconds)
     {
-        ArrayList<CabinStatus> statuses = new ArrayList<>();
-        ArrayList<FloorNumber> nextFloors;
-
+        // Clear previous cabin statuses
+        m_Statuses.clear();
+        // Get the latest control panel snap shot.
+        m_ControlPanelSnapShot = m_ControlPanel.getSnapShot();
+        ViewTypes currentView = m_ControlPanelSnapShot.currentView;
+        // Get the latest cabin snap shots.
         for(Cabin cabin : cabins){
             CabinStatus status = cabin.getStatus();
-
-            statuses.add(status);
-//            System.out.println(status.getLastFloor().get() + " " + status.getDestination().get());
+            m_Statuses.add(status);
+            // If the cabin has arrived at it's destination notify of arrival.
             if(status.getLastFloor() == status.getDestination() && status.getMotionStatus() == MotionStatusTypes.STOPPED){
-                System.out.println("pop");
-                status.getAllActiveRequests().removeRequest(status.getLastFloor());
-                floorrequests.notifyOfArrival(status.getLastFloor(),status.getCabinNumber(),status.getDirection());
-                ea.pop(status);
+                // Upon arrival;
+                // 0. Remove request from cabin.
+                // 1. Signal of arrival.
+                // 2. Open doors.
+                // 3. Close doors. (WHILE checking if interference has been detected).
+                //    a. If interference is detected open doors (go to step 2).
+                // 4. Allow Cabin to start moving to service next request.  (signal the algorithm).
+                cabin.removeRequest(status.getLastFloor()); // Remove cabin request.
+                floorrequests.notifyOfArrival(status.getLastFloor(),status.getCabinNumber(), status.getDirection()); // Signal arrival.
+                m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(status.getLastFloor()); // Turn off button light.
+                ArrivalLightStates light;
+                if(status.getDirection() == DirectionType.UP) light = ArrivalLightStates.ARRIVAL_GOING_UP;
+                else if(status.getDirection() == DirectionType.DOWN) light = ArrivalLightStates.ARRIVAL_GOING_DOWN;
+                else light = ArrivalLightStates.NO_ARRIVAL;
+                m_RenderEntityManager.arrivalLightRenderer.setArrivalLightState(light);
+                //TODO add opening doors.
+                //TODO add closing doors and turning off arrival light visual. (only turn off light when fully closed).
+                if(currentView != ViewTypes.OVERVIEW && _doorControl.interferenceDetected())
+                {
+                    //TODO open doors again.
+                }
             }
         }
 
-        m_ControlPanelSnapShot = m_ControlPanel.getSnapShot(); // Get latest snap-shot.
+        // If the user is viewing the inside of one of the cabins then render the cabin.
+        if(currentView != ViewTypes.OVERVIEW)
+        {
+            CabinStatus visibleCabin = m_Statuses.get(currentView.toInt()-1);
+            m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloor());
+            for(FloorNumber fr : visibleCabin.getAllActiveRequests())  m_RenderEntityManager.buttonPanelRenderer.turnOnFloorButton(fr);
+        }
+
+
+        // First check if a random fire has taken place.
+        // Next check if the manager has pressed the fire alarm button.
+        // Finally perform a time step in the alarm logic.
+        alarm.fireCheck();
+        alarm.managerPressCheck(m_ControlPanelSnapShot.isAlarmOn);
+        alarm.step();
+
         // Potentially update views.
         m_UpdateViewCheck(m_ControlPanelSnapShot.currentView);
+        // Update Cabin locations.
+        m_RenderEntityManager.updateCabinLocations(m_Statuses);
 
-        if(m_ControlPanelSnapShot.upDownEvent.getKey() != DirectionType.NONE)
+
+        // Merge any requests from the manager with any randomly generated ones.
+        ArrayList<CallButtons> callButtons = floorrequests.getFloorRequests();
+        if(m_ControlPanelSnapShot.currentView != ViewTypes.OVERVIEW)
         {
-            cabins.get(0).setDestination(m_ControlPanelSnapShot.upDownEvent.getValue());
-        }
-
-        if(!alarmActivated.get()) {
-            nextFloors = ea.schedule(statuses,floorrequests.getFloorRequests(),fire);
-//            for(FloorNumber n : nextFloors){
-//                System.out.print(n.get() + " ");
-//            }
-//            System.out.println("");
-
-            for(int i = 0; i < 4; i+=1){
-                if(cabins.get(i).getStat().getMotionStatus() == MotionStatusTypes.STOPPED){
-//                        && _doorControl.getStatus(floor, cabin) == DoorStatusType.CLOSED) {
-                    cabins.get(i).setDestination(nextFloors.get(i));
-                }
+            CabinStatus inViewCabin = m_Statuses.get(m_ControlPanelSnapShot.currentView.toInt()-1);
+            HashSet<FloorNumber> requests = inViewCabin.getAllActiveRequests();
+            requests.addAll(m_ControlPanelSnapShot.manualFloorsPresses);
+            inViewCabin.setRequests(requests);
+            Pair<DirectionType, FloorNumber> managerRequest = m_ControlPanelSnapShot.upDownEvent;
+            if(managerRequest.getKey() != DirectionType.NONE)
+            {
+                CallButtons managerCallButton = new CallButtons(managerRequest.getValue(), managerRequest.getKey());
+                managerCallButton.setButtonPressedState(true);
+                callButtons.add(managerCallButton);
             }
         }
+        // Wipe requests for locked cabins or all cabins if a fire has occurred before sending it to the algorithm.
+        // TODO This does not clear any CallButtons. It might be better to merge call buttons into the requests
+        // TODO before we send them to the algorithm.
+        ArrayList<Boolean> lockedPanels = m_ControlPanelSnapShot.lockedPanels;
+        for(int i = 0; i < lockedPanels.size(); i++)
+        {
+            if(lockedPanels.get(i)) m_Statuses.get(i).setRequests(new HashSet<>());
+        }
+        if(alarm.isOn())
+        {
+            for(CabinStatus cs : m_Statuses) cs.setRequests(new HashSet<>());
+        }
 
-//        m_FloorSignRenderer.updateFloorNumber(cs.getLastFloor());
-        m_CabinOutsideOne.updateYLocation(statuses.get(0).getLastFloor());
-        m_CabinOutsideTwo.updateYLocation(statuses.get(1).getLastFloor());
-        m_CabinOutsideThree.updateYLocation(statuses.get(2).getLastFloor());
-        m_CabinOutsideFour.updateYLocation(statuses.get(3).getLastFloor());
+        // Now send the data to the Elevator Algorithm.
+        // The algorithm will schedule the cabins and return the current
+        // destination floor of each cabin.
+        m_NextFloors = ea.schedule(m_Statuses,callButtons,alarm.isOn());
 
-        for(CabinStatus cs : statuses) {
+
+        // Now update the cabins destinations.
+        for(CabinStatus cs : m_Statuses) {
             if (cs.getDestination().get() > 0) {
-                m_DestinationFloorRenderer.setFloorNumber(cs.getDestination());
+                m_RenderEntityManager.destinationFloorRenderer.setFloorNumber(cs.getDestination());
                 if (cs.getDestination().get() != previousDest) {
                     previousDest = cs.getDestination().get();
-                    wasOpened = false;
                 }
             }
         }
-
-//        // dumb algorithm just for demo, only works with one cabin and a single request at a time.
-//        CabinNumber cabin = new CabinNumber(1);
-//        FloorNumber floor = new FloorNumber(1);
-//        CabinStatus cs = cabins.get(0).getStatus();
-//        //Process floor requests as usual if the fire alarm has not been activated.
-//        if(!alarmActivated.get())
-//        {
-//          if(m_ControlPanelSnapShot.manualFloorsPresses.size() != 0)
-//          {
-//              // Try to insert the floor request if it has not already been requested
-//              FloorNumber floorReq = new FloorNumber(m_ControlPanelSnapShot.manualFloorsPresses.get(0));
-//              DirectionType dir = cs.getDirection();
-//              if (floorReq.get() > cs.getLastFloor().get()) {
-//                  if (floorReq.get() < cs.getDestination().get() && dir == DirectionType.UP) {
-//                      cabins.get(0).setDestination(floorReq);
-//                      _upRequests.add(cs.getDestination());
-//                  }
-//                  else _upRequests.add(floorReq);
-//              }
-//              else if (floorReq.get() < cs.getLastFloor().get()) {
-//                  if (floorReq.get() > cs.getDestination().get() && dir == DirectionType.DOWN) {
-//                      cabins.get(0).setDestination(floorReq);
-//                      _downRequests.add(cs.getDestination());
-//                  }
-//                  else _downRequests.add(floorReq);
-//              }
-//              //cabins.get(0).setDestination(new FloorNumber(m_ControlPanelSnapShot.manualFloorsPresses.get(0)));
-//          }
-//        }
-//        //The fire alarm has been activated, so don't process any floor requests. Send the elevator to the first floor.
-//        else if(alarmActivated.get())
-//        {
-//          //Cancel all requests.
-//          for(int q = 0; q < 10; q ++)
-//          {
-//            m_ButtonPanelRenderer.turnOffFloorButton(new FloorNumber(q + 1));
-//          }
-//          _upRequests.clear();
-//          _downRequests.clear();
-//          _downRequests.add(new FloorNumber(1));
-//        }
-//        m_FloorSignRenderer.updateFloorNumber(cs.getLastFloor());
-//        m_CabinOutsideOne.updateYLocation(cs.getLastFloor());
-//        if(cs.getDestination().get() > 0) {
-//            m_DestinationFloorRenderer.setFloorNumber(cs.getDestination());
-//            if (cs.getDestination().get() != previousDest)
-//            {
-//                previousDest = cs.getDestination().get();
-//                wasOpened = false;
-//            }
-//        }
-//        if(cs.getDestination().equals(cs.getLastFloor()) && cs.getMotionStatus() == MotionStatusTypes.STOPPED) // WE MADE IT
-//        {
-//            m_ButtonPanelRenderer.turnOffFloorButton(cs.getDestination());
-//            /*
-//            double innerPercentage = _doorControl.getInnerDoorsPercentageOpen(cabin);
-//            double outerPercentage = _doorControl.getOuterDoorsPercentageOpen(floor, cabin);
-//            */
-//            Pair<Double, Double> percentages = _doorControl.getInnerOuterDoorPercentageOpen(floor, cabin);
-//            DoorStatusType status = _doorControl.getStatus(floor, cabin);
-//            if(!wasOpened)
-//            {
-//                _doorControl.open(floor, cabin);
-//                if(cs.getDirection() == DirectionType.UP) m_ArrivalLightRenderer.setArrivalLightState(ArrivalLightStates.ARRIVAL_GOING_UP);
-//                if(cs.getDirection() == DirectionType.DOWN) m_ArrivalLightRenderer.setArrivalLightState(ArrivalLightStates.ARRIVAL_GOING_DOWN);
-//            }
-//            else
-//            {
-//                _doorControl.close(floor,cabin);
-//                m_ArrivalLightRenderer.setArrivalLightState(ArrivalLightStates.NO_ARRIVAL);
-//            }
-//            m_InsideDoorLeft.update(percentages.getKey(), status);
-//            m_InsideDoorRight.update(percentages.getKey(), status);
-//            m_OutsideDoorLeft.update(percentages.getValue(), status);
-//            m_OutsideDoorRight.update(percentages.getValue(), status);
-//            doorCloseTime += deltaSeconds;
-//            //if(doorCloseTime > 15)
-//            if (doorCloseTime > 15 && _doorControl.getStatus(floor, cabin) == DoorStatusType.OPENED)
-//            {
-//                wasOpened = true;
-//                doorCloseTime = 0.0;
-//            }
-//            //An interference was detected by the Optical Interference Detector, so switch from closing to opening door.
-//            if(interference.get())
-//            {
-//              doorCloseTime = 0;
-//              wasOpened = false;
-//              interference.set(false);
-//            }
-//        }
-//
-//        for(FloorNumber i : _upRequests) m_ButtonPanelRenderer.turnOnFloorButton(i);
-//        for(FloorNumber i : _downRequests) m_ButtonPanelRenderer.turnOnFloorButton(i);
-//        // If this is true, the cabin is both stopped and the doors are closed so it is safe to
-//        // assign it a new destination if there is one
-//        if(cs.getMotionStatus() == MotionStatusTypes.STOPPED &&
-//                _doorControl.getStatus(floor, cabin) == DoorStatusType.CLOSED) {
-//            DirectionType dir = cs.getDirection();
-//            //System.out.println(dir);
-//            if (_upRequests.size() > 0 && dir == DirectionType.UP) {
-//                FloorNumber floorReq = _upRequests.pollFirst();
-//                cabins.get(0).setDestination(floorReq);
-//                //System.out.println("Remaining requests (in queue): " + _acceptedRequests);
-//            }
-//            else if (_downRequests.size() > 0 && dir == DirectionType.DOWN) {
-//                FloorNumber floorReq = _downRequests.pollFirst();
-//                cabins.get(0).setDestination(floorReq);
-//            }
-//            else {
-//                int numDownReqs = _downRequests.size();
-//                int numUpReqs = _upRequests.size();
-//                if (numDownReqs > numUpReqs && numDownReqs > 0) {
-//                    FloorNumber floorReq = _downRequests.pollFirst();
-//                    cabins.get(0).setDestination(floorReq);
-//                }
-//                else if (numUpReqs > 0) {
-//                    FloorNumber floorReq = _upRequests.pollFirst();
-//                    cabins.get(0).setDestination(floorReq);
-//                }
-//            }
-//        }
-
-        // End dumb algorithm
     }
 
     private void m_UpdateViewCheck(ViewTypes updatedView)
     {
         if(updatedView == m_PreviousView) return;
+        if(updatedView != ViewTypes.OVERVIEW) m_RenderEntityManager.elevatorNumberSignRenderer.setCabinNumber(new CabinNumber(updatedView.toInt()));
         if(updatedView == ViewTypes.OVERVIEW && m_PreviousView != ViewTypes.OVERVIEW) m_SwitchToOverView();
         if(updatedView != ViewTypes.OVERVIEW && m_PreviousView == ViewTypes.OVERVIEW) m_SwitchToCabinView();
         m_PreviousView = updatedView;
@@ -315,368 +170,14 @@ public class BuildingControl implements LogicEntity
 
     private void m_SwitchToCabinView()
     {
-        m_SystemOverviewMgr.deactivateAll();
-        m_ElevatorViewMng.activateAll();
+        m_RenderEntityManager.switchToCabinView();
         m_ControlPanel.switchToCabinView();
     }
     private void m_SwitchToOverView()
     {
-        m_SystemOverviewMgr.activateAll();
-        m_ElevatorViewMng.deactivateAll();
+        m_RenderEntityManager.switchToSystemOverview();
         m_ControlPanel.switchToOverView();
     }
-
-
-    private void m_ConstructScenes()
-    {
-        // Add all render entities that go in the system overview.
-
-        // Add all render entities that go in the single elevator view.
-        m_FloorSignRenderer = new FloorSignRenderer(new FloorNumber(1),745,20,3,100,40);
-        m_ElevatorViewMng.add(m_FloorSignRenderer);
-        m_ElevatorViewMng.add(new CabinBackgroundRenderer(Orientation.INSIDE,600,0,4,400,400));
-        m_ElevatorViewMng.add(new CabinBackgroundRenderer(Orientation.OUTSIDE, 0,0,4,400,400));
-
-        // Mappings of door open/close percentages to x positions. The indexes in the array correspond to
-        m_InsideDoorLeft = new DoorPanelRenderer(DoorSideTypes.LEFT,700,80,5,100,250, 639.8, 700,60.2);
-        m_InsideDoorRight =  new DoorPanelRenderer(DoorSideTypes.RIGHT,800,80,5,100,250, 800, 856.6, 56.6);
-        m_OutsideDoorLeft = new DoorPanelRenderer(DoorSideTypes.LEFT, 100,80,5,100,250, 39.8, 100, 60.2);
-        m_OutsideDoorRight =  new DoorPanelRenderer(DoorSideTypes.RIGHT, 200, 80, 5, 100, 250, 200,256.6,56.6);
-
-        m_ElevatorViewMng.add(m_InsideDoorLeft); // Left inside door.
-        m_ElevatorViewMng.add(m_InsideDoorRight); // Right inside door.
-        m_ElevatorViewMng.add(m_OutsideDoorLeft); // Left outside door.
-        m_ElevatorViewMng.add(m_OutsideDoorRight); // Right outside door.
-
-        m_ButtonPanelRenderer = new ElevatorButtonPanelRenderer(900,107,3,80,150);
-        m_ElevatorViewMng.add(m_ButtonPanelRenderer);
-        m_ElevatorViewMng.add(new ElevatorNumberSignRenderer(new CabinNumber(1), 600,0,3,100,35));
-        m_DestinationFloorRenderer = new LobbyFloorNumberSignRenderer(new FloorNumber(1), 0,0,3,100,35);
-        m_ElevatorViewMng.add(m_DestinationFloorRenderer);
-        m_ArrivalLightRenderer = (new ArrivalLightRenderer(ArrivalLightStates.NO_ARRIVAL, 175,40,3,50,20));
-        m_ElevatorViewMng.add(m_ArrivalLightRenderer);
-
-        m_SystemOverviewMgr.add(new BuildingBackgroundRenderer(0,0,4,1000,400));
-        for(int i = 0; i < 10; i++) m_SystemOverviewMgr.add(new ArrowButtonRenderer(ArrowButtonStates.NOTHING_PRESSED, 950, i*40, 3, 32,38));
-
-        m_CabinOutsideOne = new OutsideCabinRenderer(120,365,3,40,35);
-        m_CabinOutsideTwo = new OutsideCabinRenderer(260,365,3,40,35);
-        m_CabinOutsideThree = new OutsideCabinRenderer(710,365,3,40,35);
-        m_CabinOutsideFour = new OutsideCabinRenderer(855,365,3,40,35);
-
-        m_SystemOverviewMgr.add(m_CabinOutsideOne);
-        m_SystemOverviewMgr.add(m_CabinOutsideTwo);
-        m_SystemOverviewMgr.add(m_CabinOutsideThree);
-        m_SystemOverviewMgr.add(m_CabinOutsideFour);
-
-    }
-
-
-    // All animations are now rendered at the top level. (Here).
-
-    /*
-        Renders the floor sign above the elevator when viewing from inside.
-     */
-    class FloorSignRenderer extends RenderEntity
-    {
-        private FloorNumber m_Floor;
-        FloorSignRenderer(FloorNumber floor, int x, int y, int d, int w, int h)
-        {
-            m_Floor = floor;
-            setLocationXYDepth(x, y, d);
-            setWidthHeight(w, h);
-        }
-
-        public void updateFloorNumber(FloorNumber floorNumber) {m_Floor = floorNumber;}
-
-        @Override
-        public void pulse(double deltaSeconds) { setTexture("/resources/img/CCTV_Views/elevator/cabin/floorNumbers/floor" + m_Floor.get() +".png"); }
-    }
-
-    /*
-        Renders a sign in the cabin that display the cabin number 1-4.
-     */
-    class ElevatorNumberSignRenderer extends RenderEntity
-    {
-        CabinNumber m_CabinNumber;
-        ElevatorNumberSignRenderer(CabinNumber cabinNumber, int x, int y, int d, int w, int h)
-        {
-            m_CabinNumber = cabinNumber;
-            setLocationXYDepth(x, y, d);
-            setWidthHeight(w, h);
-        }
-
-        public void setCabinNumber(CabinNumber cabinNumber) {m_CabinNumber = cabinNumber;}
-
-        @Override
-        public void pulse(double deltaSeconds) {setTexture("/resources/img/CCTV_Views/elevator/cabin/cabinNumbers/cabin" + m_CabinNumber.get() +".png");
-        }
-    }
-
-    class LobbyFloorNumberSignRenderer extends RenderEntity
-    {
-        FloorNumber m_FloorNumber;
-        LobbyFloorNumberSignRenderer(FloorNumber floorNumber, int x, int y, int d, int w, int h)
-        {
-            m_FloorNumber = floorNumber;
-            setLocationXYDepth(x, y, d);
-            setWidthHeight(w, h);
-        }
-
-        public void setFloorNumber(FloorNumber floorNumber) {m_FloorNumber = floorNumber;}
-
-        @Override
-        public void pulse(double deltaSeconds) {
-            setTexture("/resources/img/CCTV_Views/outside/floorLobbyNumbers/floor" + m_FloorNumber.get() + ".png");
-        }
-    }
-
-
-
-    /*
-         Renders inside of the cabin.
-         Note: Pulse should not be implemented, the image never changes.
-     */
-    class CabinBackgroundRenderer extends RenderEntity
-    {
-
-        CabinBackgroundRenderer(Orientation org, int x, int y, int d, int w, int h)
-        {
-            String texture = "/resources/img/CCTV_Views/" + ((org == Orientation.INSIDE) ? "elevator/cabin/cabinFrame.png" : "outside/outside.png");
-            setTexture(texture);
-            setLocationXYDepth(x, y, d);
-            setWidthHeight(w, h);
-        }
-
-        @Override
-        public void pulse(double deltaSeconds) {}
-    }
-
-    /*
-        Renders one single door panel, use this for inside and outside doors.
-     */
-    class DoorPanelRenderer extends RenderEntity
-    {
-        double m_XInit;
-        double m_XPos;
-        double m_YPos;
-        double m_Depth;
-        double m_LBound;
-        double m_HBound;
-        double m_Width;
-        DoorSideTypes m_Side;
-        DoorPanelRenderer(DoorSideTypes doorSide, int x, int y, int d, int w, int h, double lBound, double hBound, double width)
-        {
-            m_XPos = x;
-            m_XInit = x;
-            m_YPos = y;
-            m_Depth = d;
-            m_Side = doorSide;
-            m_LBound = lBound;
-            m_HBound = hBound;
-            m_Width = width;
-            setTexture("/resources/img/CCTV_Views/elevator/cabin/" + ((doorSide == DoorSideTypes.LEFT) ? "left" : "right") + "Door.png");
-            setLocationXYDepth(m_XPos, m_YPos, m_Depth);
-            setWidthHeight(w, h);
-        }
-
-
-        public void update(double percentage, DoorStatusType status)
-        {
-            /**
-            if(status == DoorStatusType.OPENING && m_Side == DoorSideTypes.LEFT) m_XPos = m_HBound - (percentage * m_Width);
-            if(status == DoorStatusType.OPENING && m_Side == DoorSideTypes.RIGHT) m_XPos = m_LBound + (percentage * m_Width);
-            if(status == DoorStatusType.CLOSING && m_Side == DoorSideTypes.LEFT) m_XPos = m_LBound + (percentage * m_Width);
-            if(status == DoorStatusType.CLOSING && m_Side == DoorSideTypes.RIGHT) m_XPos = m_HBound - (percentage * m_Width);
-             */
-            if (m_Side == DoorSideTypes.LEFT) m_XPos = m_HBound - (percentage * m_Width);
-            if (m_Side == DoorSideTypes.RIGHT) m_XPos = m_LBound + (percentage * m_Width);
-        }
-
-        @Override
-        public void pulse(double deltaSeconds) {
-            setLocationXYDepth(m_XPos, m_YPos, m_Depth);
-        }
-    }
-
-
-    /*
-        Renders the elevator button panel (not the managers one).
-     */
-    class ElevatorButtonPanelRenderer extends RenderEntity
-    {
-        private ArrayList<ElevatorButtonRenderer> buttonRenderers = new ArrayList<>();
-
-        ElevatorButtonPanelRenderer(int x, int y, int d, int w, int h)
-        {
-            setTexture("/resources/img/CCTV_Views/elevator/elevatorFloorPanel/elevatorButtonPanel.png");
-            // Create the buttons inside the panel.
-            Iterator<Integer> xLocs = Arrays.asList(917,942,917,942,917,942,917,942,917,942).iterator();
-            Iterator<Integer> yLocs = Arrays.asList(220,220,195,195,170,170,145,145,120,120).iterator();
-            int buttonNum = 1;
-            while(xLocs.hasNext() && yLocs.hasNext()) {
-                ElevatorButtonRenderer elevatorButton = new ElevatorButtonRenderer(buttonNum, xLocs.next(), yLocs.next(), 2, 20 ,20);
-                m_ElevatorViewMng.add(elevatorButton);
-                buttonRenderers.add(elevatorButton);
-                buttonNum++;
-            }
-            setLocationXYDepth(x, y, d);
-            setWidthHeight(w, h);
-        }
-
-        public void turnOnFloorButton(FloorNumber floorNumber) {buttonRenderers.get(floorNumber.get()-1).turnOn();}
-        public void turnOffFloorButton(FloorNumber floorNumber) {buttonRenderers.get(floorNumber.get()-1).turnOff();}
-
-        @Override
-        public void pulse(double deltaSeconds) {
-
-        }
-    }
-
-    class ElevatorButtonRenderer extends RenderEntity
-    {
-        private String m_OnTexture;
-        private String m_OffTexture;
-        private String m_CurrentTexture;
-        ElevatorButtonRenderer(int buttonNum, int x, int y, int d, int w, int h)
-        {
-            m_OnTexture = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/" + buttonNum + "ON.png";
-            m_OffTexture = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/" + buttonNum + "OFF.png";
-            m_CurrentTexture = m_OffTexture;
-            setLocationXYDepth(x, y, d);
-            setWidthHeight(w, h);
-        }
-
-        public void turnOn() {m_CurrentTexture = m_OnTexture;}
-        public void turnOff() {m_CurrentTexture = m_OffTexture;}
-
-
-
-        @Override
-        public void pulse(double deltaSeconds) {setTexture(m_CurrentTexture);}
-    }
-
-
-    /*
-        Renders the arrival light above the elevator door in
-        the outside view.
-     */
-    class ArrivalLightRenderer extends RenderEntity
-    {
-        ArrivalLightStates m_CurrentArrivalLightState;
-        ArrivalLightRenderer(ArrivalLightStates startState, int x, int y, int d, int w, int h)
-        {
-            m_CurrentArrivalLightState = startState;
-            setLocationXYDepth(x, y, d);
-            setWidthHeight(w, h);
-        }
-
-        public void setArrivalLightState(ArrivalLightStates arrivalLightState) {m_CurrentArrivalLightState = arrivalLightState;}
-
-        @Override
-        public void pulse(double deltaSeconds) {setTexture("resources/img/CCTV_Views/outside/arrivalLights/" + m_CurrentArrivalLightState.toString());}
-    }
-
-    /*
-        Renders the up/down arrows in the outside view. There is only one of these per floor so
-        regardless of what elevator your viewing the outside of on a floor it should display the same
-        up/down arrow.
-     */
-    class ArrowButtonRenderer extends RenderEntity
-    {
-        ArrowButtonStates m_CurrentArrowButton;
-        ArrowButtonRenderer(ArrowButtonStates startState, int x, int y, int d, int w, int h)
-        {
-            m_CurrentArrowButton = startState;
-            setLocationXYDepth(x, y, d);
-            setWidthHeight(w, h);
-        }
-
-        public void setArrowButtonState(ArrowButtonStates arrowButtonState) {m_CurrentArrowButton = arrowButtonState;}
-
-        @Override
-        public void pulse(double deltaSeconds) {setTexture("resources/img/CCTV_Views/elevator/cabin/directionLights/" + m_CurrentArrowButton.toString());}
-    }
-
-    /*
-        Renders the outside of the cabin body for
-        the overview mode.
-     */
-    class OutsideCabinRenderer extends RenderEntity
-    {
-        double m_XPos;
-        double m_YPos;
-        double m_Depth;
-
-        OutsideCabinRenderer(int x, int y, int d, int w, int h)
-        {
-            m_XPos = x;
-            m_YPos = y;
-            m_Depth = d;
-            setTexture("resources/img/Building_Overview/cabinOutside.png");
-            setLocationXYDepth(m_XPos, m_YPos, m_Depth);
-            setWidthHeight(w, h);
-        }
-
-        public void updateYLocation(FloorNumber n) {m_YPos = floorsToYLoc.get(n);}
-
-        @Override
-        public void pulse(double deltaSeconds) {setLocationXYDepth(m_XPos, m_YPos , m_Depth);}
-    }
-
-
-    class BuildingBackgroundRenderer extends RenderEntity
-    {
-
-        BuildingBackgroundRenderer(int x, int y, int d, int w, int h)
-        {
-            setTexture("resources/img/background3.png");
-            setLocationXYDepth(x, y, d);
-            setWidthHeight(w, h);
-        }
-        @Override
-        public void pulse(double deltaSeconds) {
-        }
-    }
-    class Helper implements MessageHandler
-    {
-        @Override
-        public void handleMessage(Message message)
-        {
-            switch(message.getMessageName()) {
-                case ControlPanelGlobals.CHANGE_VIEW:
-                    ViewTypes m_CurrentView = (ViewTypes) message.getMessageData();
-                    if(m_CurrentView == ViewTypes.ELEVATOR_ONE)
-                    {
-                      m_CurrCabin = 1;
-                    }
-                    else if(m_CurrentView == ViewTypes.ELEVATOR_TWO)
-                    {
-                      m_CurrCabin = 2;
-                    }
-                    else if(m_CurrentView == ViewTypes.ELEVATOR_THREE)
-                    {
-                      m_CurrCabin = 3;
-                    }
-                    else if(m_CurrentView == ViewTypes.ELEVATOR_FOUR)
-                    {
-                      m_CurrCabin = 4;
-                    }
-                    break;
-                case ControlPanelGlobals.ALARM_ON:
-                  alarmActivated.set(true);
-                  break;
-                case ControlPanelGlobals.ALARM_OFF:
-                  alarmActivated.set(false);
-                  break;
-                default:
-                    throw new IllegalArgumentException("Unhandled Message Received.");
-
-            }
-        }
-
-    }
-
 
 
 }

@@ -2,7 +2,7 @@ package control_logic;
 
 import named_types.DoorStatusType;
 
-public class Sensors
+class Sensors
 {
     ElevatorDoorPositionSensor _doorPosSensor;
     OpticalInterferenceDetector _opticalDetector;
@@ -13,17 +13,13 @@ public class Sensors
     {
       _doorControl = doorControl;
       _doorPosSensor = new ElevatorDoorPositionSensor();
-      _opticalDetector = new OpticalInterferenceDetector(this);
+      _opticalDetector = new OpticalInterferenceDetector();
       _floorDoorSensor = new FloorDoorPositionSensor();
     }
     
-    public DoorStatusType checkDoorStatus(double openPercent, boolean isOpening)
-    {
+    DoorStatusType checkDoorStatus(double openPercent, boolean isOpening) {
       return _doorPosSensor.checkDoorStatus(openPercent, isOpening);
     }
-    
-    DoorControl getDoorControl()
-    {
-      return _doorControl;
-    }
+
+    boolean checkForInterference() {return _opticalDetector.interferenceDetected();}
 }

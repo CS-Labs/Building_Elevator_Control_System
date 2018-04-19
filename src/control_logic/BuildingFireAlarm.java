@@ -1,102 +1,46 @@
 package control_logic;
 
+import javafx.scene.media.AudioClip;
+
 import java.net.URL;
 import java.util.Random;
 
-import application.ControlPanelGlobals;
-import engine.Engine;
-import engine.Message;
-import engine.MessageHandler;
-import javafx.scene.media.AudioClip;
-
 public class BuildingFireAlarm
 {
-    private Helper m_Helper = new Helper();
-    private boolean m_AlarmOn = false; 
-    String alarmSound = "/resources/sounds/fire_alarm.wav";
-    URL url;
-    AudioClip sound;
-    boolean init = true;
-    Random rand = new Random();
-    
-    BuildingFireAlarm()
+    private final String alarmSound = "/resources/sounds/fire_alarm.wav";
+    private AudioClip sound;
+    private Random rand = new Random();
+    private boolean alarmOn = false;
+    private boolean playing = false;
+
+    private void soundAlarm()
     {
-      m_signalInterests();
-    }
-    
-    private void play(boolean init)
-    {
-      if(init)
-      {
-        url = BuildingFireAlarm.class.getResource(alarmSound);
+        URL url = BuildingFireAlarm.class.getResource(alarmSound);
         sound = new AudioClip(url.toExternalForm());
         sound.setCycleCount(AudioClip.INDEFINITE);
         sound.play(1, 0, 1, 0, 1);
-        this.init = false;
-      }
-      else if(!init)
-      {
+        playing = true;
+    }
+    private void stopSoundingAlarm() {
         sound.stop();
-        this.init = true;
-      }
+        playing = false;
     }
-    
-    public boolean fireOccurred() 
-    {
-      if(!m_AlarmOn)
-      {
-        //1/100 chance that the fire alarm randomly goes off.
-        int randNum = rand.nextInt(100);
-        if(rand.nextInt(100) == randNum)
-        {
-          this.init = true;
-          m_AlarmOn = true;
-          Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.ALARM_ON));
-        }
-      }
-      return m_AlarmOn;
-    }
-    
-    public void setStatus(boolean status) 
-    {
-      if(status)
-      {
-        this.init = true;
-        Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.ALARM_ON));
-      }
-      else
-      {
-        this.init = false;
-        Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.ALARM_OFF));
-      }
-    }
-    
-    private void m_signalInterests()
-    {
-        Engine.getMessagePump().signalInterest(ControlPanelGlobals.ALARM_ON, m_Helper);
-        Engine.getMessagePump().signalInterest(ControlPanelGlobals.ALARM_OFF, m_Helper);
-    }
-    
-    class Helper implements MessageHandler
-    {
-        @Override
-        public void handleMessage(Message message)
-        {
-            switch(message.getMessageName()) {
-                case ControlPanelGlobals.ALARM_ON:
-                    m_AlarmOn = true;
-                    play(init);
-                    break;
-                case ControlPanelGlobals.ALARM_OFF:
-                    m_AlarmOn = false;
-                    play(init);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unhandled Message Received.");
 
-            }
-        }
-
+    void managerPressCheck(boolean managerPressed) {
+        if(managerPressed) alarmOn = !alarmOn;
     }
+
+    //If the Alarm is off with a probability of 1/10000 turn it on.
+    void fireCheck() {
+        if (!alarmOn & rand.nextInt(10000) == 0) alarmOn = true;
+    }
+    boolean isOn() {return alarmOn;}
+    // Perform time step.
+    void step()
+    {
+        if(alarmOn && !playing) soundAlarm();
+        if(!alarmOn && playing) stopSoundingAlarm();
+    }
+
 
 }

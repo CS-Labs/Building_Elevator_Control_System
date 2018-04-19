@@ -14,15 +14,16 @@ import javafx.scene.layout.GridPane;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 
 public class ControlPanel extends GridPane
 {
     private Helper m_Helper = new Helper();
-    private ArrayList<Integer> m_FloorsButtonsPressed = new ArrayList<>(); // TODO: change to call buttons once implemented.
-    private boolean m_AlarmOn = false;
-    private ViewTypes m_CurrentView = ViewTypes.ELEVATOR_ONE; // TODO: Decide what the first view should be.
+    private HashSet<FloorNumber> m_FloorsButtonsPressed = new HashSet<>();
+    private boolean m_AlarmPressed = false;
+    private ViewTypes m_CurrentView = ViewTypes.OVERVIEW;
     private ArrayList<Boolean> m_LockedPanels = new ArrayList<>(Arrays.asList(false, false, false, false));
-    private boolean m_KeyActivated = false;
+    private boolean m_KeyChange = false;
     private SceneManager m_ElevatorViewMgr = new SceneManager(); // Only on screen when viewing inside elevators.
     private SceneManager m_SystemOverviewMgr = new SceneManager(); // Only on screen when viewing system overview.
     private Pair<DirectionType, named_types.FloorNumber> m_UpDownEvent = new Pair<>(DirectionType.NONE, new FloorNumber(-1));
@@ -53,12 +54,10 @@ public class ControlPanel extends GridPane
     private void m_signalInterests()
     {
         Engine.getMessagePump().signalInterest(ControlPanelGlobals.MANUAL_FLOOR_PRESS, m_Helper);
-        Engine.getMessagePump().signalInterest(ControlPanelGlobals.ALARM_ON, m_Helper);
-        Engine.getMessagePump().signalInterest(ControlPanelGlobals.ALARM_OFF, m_Helper);
+        Engine.getMessagePump().signalInterest(ControlPanelGlobals.ALARM_PRESS, m_Helper);
         Engine.getMessagePump().signalInterest(ControlPanelGlobals.CHANGE_VIEW, m_Helper);
         Engine.getMessagePump().signalInterest(ControlPanelGlobals.LOCK_PANEL_UPDATE, m_Helper);
-        Engine.getMessagePump().signalInterest(ControlPanelGlobals.KEY_LOCK_ACTIVATED, m_Helper);
-        Engine.getMessagePump().signalInterest(ControlPanelGlobals.KEY_LOCK_DEACTIVATED, m_Helper);
+        Engine.getMessagePump().signalInterest(ControlPanelGlobals.KEY_LOCK_CHANGE, m_Helper);
         Engine.getMessagePump().signalInterest(ControlPanelGlobals.MANAGER_UP, m_Helper);
         Engine.getMessagePump().signalInterest(ControlPanelGlobals.MANAGER_DOWN, m_Helper);
     }
@@ -96,11 +95,18 @@ public class ControlPanel extends GridPane
     public ControlPanelSnapShot getSnapShot()
     {
         Pair<DirectionType, FloorNumber> upDownEvent = new Pair<>(m_UpDownEvent.getKey(), m_UpDownEvent.getValue());
-        ControlPanelSnapShot snapShot = new ControlPanelSnapShot(new ArrayList<>(m_FloorsButtonsPressed),
-                m_AlarmOn, new ArrayList<>(m_LockedPanels), m_CurrentView, m_KeyActivated, upDownEvent);
+        ControlPanelSnapShot snapShot = new ControlPanelSnapShot(new HashSet<>(m_FloorsButtonsPressed),
+                m_AlarmPressed, new ArrayList<>(m_LockedPanels), m_CurrentView, m_KeyChange, upDownEvent);
+        resetStatus();
+        return snapShot;
+    }
+
+    private void resetStatus()
+    {
         m_FloorsButtonsPressed.clear();
         m_UpDownEvent = new Pair<>(DirectionType.NONE, new FloorNumber(-1));;
-        return snapShot;
+        m_AlarmPressed = false;
+        m_KeyChange = false;
     }
 
 
@@ -112,13 +118,10 @@ public class ControlPanel extends GridPane
             switch(message.getMessageName()) {
 
                 case ControlPanelGlobals.MANUAL_FLOOR_PRESS:
-                    m_FloorsButtonsPressed.add(((FloorNumber) message.getMessageData()).get());
+                    m_FloorsButtonsPressed.add(((FloorNumber) message.getMessageData()));
                     break;
-                case ControlPanelGlobals.ALARM_ON:
-                    m_AlarmOn = true;
-                    break;
-                case ControlPanelGlobals.ALARM_OFF:
-                    m_AlarmOn = false;
+                case ControlPanelGlobals.ALARM_PRESS:
+                    m_AlarmPressed = true;
                     break;
                 case ControlPanelGlobals.CHANGE_VIEW:
                     m_CurrentView = (ViewTypes) message.getMessageData();
@@ -126,11 +129,8 @@ public class ControlPanel extends GridPane
                 case ControlPanelGlobals.LOCK_PANEL_UPDATE:
                     m_LockedPanels = (ArrayList<Boolean>) message.getMessageData();
                     break;
-                case ControlPanelGlobals.KEY_LOCK_ACTIVATED:
-                    m_KeyActivated = true;
-                    break;
-                case ControlPanelGlobals.KEY_LOCK_DEACTIVATED:
-                    m_KeyActivated = false;
+                case ControlPanelGlobals.KEY_LOCK_CHANGE:
+                    m_KeyChange = true;
                     break;
                 case ControlPanelGlobals.MANAGER_UP:
                     m_UpDownEvent = new Pair<DirectionType, FloorNumber>(DirectionType.UP, (FloorNumber) message.getMessageData());

@@ -29,12 +29,10 @@ public class SetUp implements ApplicationEntryPoint {
     private void m_registerSimulationMessages()
     {
         Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.MANUAL_FLOOR_PRESS));
-        Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.ALARM_ON));
-        Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.ALARM_OFF));
+        Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.ALARM_PRESS));
         Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.CHANGE_VIEW));
         Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.LOCK_PANEL_UPDATE));
-        Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.KEY_LOCK_ACTIVATED));
-        Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.KEY_LOCK_DEACTIVATED));
+        Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.KEY_LOCK_CHANGE));
         Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.MANAGER_UP));
         Engine.getMessagePump().registerMessage(new Message(ControlPanelGlobals.MANAGER_DOWN));
     }

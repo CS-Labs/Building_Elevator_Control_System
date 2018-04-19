@@ -65,7 +65,6 @@ public class ElevatorAlgorithm
     }
 
     private ArrayList<Queues> cabinqueues;
-    //TODO implement me.
     ElevatorAlgorithm(ArrayList<Cabin> cabins){
         cabinqueues = new ArrayList<>();
 
@@ -130,8 +129,7 @@ public class ElevatorAlgorithm
 
         for(CabinStatus cs : cabinStatuses){
             int cn = cs.getCabinNumber().get()-1;
-            CabinRequests cr = cs.getAllActiveRequests();
-            HashSet<FloorNumber> requests = cr.getRequests();
+            HashSet<FloorNumber> requests = cs.getAllActiveRequests();
 
             // check if already scheduled
             Queues q = cabinqueues.get(cn);

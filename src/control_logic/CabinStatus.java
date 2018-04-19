@@ -13,8 +13,7 @@ class CabinStatus
     private CabinNumber cabinNumber;
     private FloorNumber destination;
     private FloorNumber lastFloor;
-    // this is only used to store from cabin and send to building control
-    private CabinRequests cabinrequests;
+    private HashSet<FloorNumber> cabinrequests;
 
     CabinStatus(CabinNumber cn) {
         this.direction = DirectionType.NONE;
@@ -31,10 +30,10 @@ class CabinStatus
     public CabinNumber getCabinNumber() {return this.cabinNumber;}
     public FloorNumber getDestination() {return this.destination;}
     public FloorNumber getLastFloor() {return this.lastFloor;}
+    public HashSet<FloorNumber> getAllActiveRequests() { return cabinrequests; }
 
     public CabinStatus getStatus() {
         CabinStatus copy = new CabinStatus(this.getCabinNumber());
-
         copy.setDestination(this.getDestination());
         copy.setRequests(this.cabinrequests);
         copy.setDirection(this.getDirection());
@@ -43,12 +42,11 @@ class CabinStatus
         return copy;
     }
     
-    public CabinRequests getAllActiveRequests() { return cabinrequests; }
     public void setDirection(DirectionType direction){this.direction = direction;}
     public void setMotionStatus(MotionStatusTypes moving) {this.moving = moving;}
     public void setDestination(FloorNumber fn) {this.destination = fn;}
     public void setLastFloor(FloorNumber fn) {this.lastFloor = fn;}
-    public void setRequests(CabinRequests cr){this.cabinrequests = cr;}
+    public void setRequests(HashSet<FloorNumber> requests){this.cabinrequests = requests;}
 
     // For debugging.
     @Override
