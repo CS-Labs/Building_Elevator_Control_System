@@ -68,7 +68,7 @@ class MotionControl implements LogicEntity
 
     //Updated speed by Mina and Javier
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
-    /*if(lastFloor > floorToGoTO.get())
+    if(lastFloor > floorToGoTO.get())
     {
       direction = DirectionType.DOWN;
       motionStatus = MotionStatusTypes.MOVING;
@@ -112,13 +112,13 @@ class MotionControl implements LogicEntity
         }
       }
     }
-    *///////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////
     //end of commented part
 
 
 
-
-    if(lastFloor > floorToGoTO.get())
+//Christian stuff
+    /*if(lastFloor > floorToGoTO.get())
     {
 //      if (motorSimulation.getSpeed().equals(speedProfile.get(speedProfile.size() / 2)))
 //      {
@@ -145,7 +145,7 @@ class MotionControl implements LogicEntity
       motorSimulation.setSpeed(new Speed(0.0));
       //if we are approaching the desired floor, we should decrease speed.
      // motorSimulation.setSpeed(new Speed(decreaseByRate(speedProfile.get(speedProfile.size()-1))));
-    }
+    }*/
   }
 
   public FloorNumber getLastFloor()
