@@ -13,6 +13,7 @@ public class FloorAlignment
 
   private int lastFloor = 0;
   private double cabinHeight = 30;//actual height of the cabin in pixels
+  private boolean sensorDetected = false;
 
   //TODO: Implement me
   FloorAlignment() {}
@@ -29,11 +30,18 @@ public class FloorAlignment
       //I have it this way since the Y direction increases as you gon down the GUI
       if (sensorLocations[i] >= topCabin && sensorLocations[i] <= botCabin)
       {
+        sensorDetected = true;
         lastFloor = i + 1;
         return lastFloor;
       }
     }
+    sensorDetected = false;
     return lastFloor;
+  }
+
+  public boolean getSensor()
+  {
+    return sensorDetected;
   }
 
 

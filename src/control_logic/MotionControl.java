@@ -17,6 +17,13 @@ class MotionControl implements LogicEntity
   private FloorNumber floorToGoTO = null;
   private MotionStatusTypes motionStatus = MotionStatusTypes.STOPPED;
   private DirectionType direction = DirectionType.NONE;
+  private boolean sensorDetected = false;
+
+  //constants for speed profile
+  private final double topSpeed = 25;
+  private final double beforeStopSpeed = 0.1;
+  private final double increaseRate = 0.005;
+  private final double decreaseRate = 0.005;
 
 
 
@@ -26,23 +33,26 @@ class MotionControl implements LogicEntity
   {
     motorSimulation.update(deltaSeconds);
     lastFloor = floorAlignment.alignedIndex(motorSimulation.getLocation());
+    sensorDetected = floorAlignment.getSensor();
 
     //update the speed
     speedUpdate();
   }
 
-  double increaseByRate(int targetSpeed)
+  double increaseByRate(double targetSpeed)
   {
-    double rate = 0.005;
+    if(motorSimulation.getSpeed().get() + increaseRate >= targetSpeed)
+      return targetSpeed;
 
-    return (targetSpeed + rate);
+    return (motorSimulation.getSpeed().get() + increaseRate);
   }
 
-  double decreaseByRate (int targetSpeed)
+  double decreaseByRate (double targetSpeed)
   {
-    double rate = 0.005;
+    if(motorSimulation.getSpeed().get() - decreaseRate <= targetSpeed)
+      return targetSpeed;
 
-    return (targetSpeed - rate);
+    return (motorSimulation.getSpeed().get() - decreaseRate);
   }
 
   private void speedUpdate()
@@ -53,8 +63,61 @@ class MotionControl implements LogicEntity
     //negative speed is UP. positive is down.
     ArrayList<Integer> speedProfile = new ArrayList<>();
     speedProfile.add(0);
-    speedProfile.add(-1);
+    speedProfile.add(1);
     speedProfile.add(0);
+
+    //Updated speed by Mina and Javier
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////
+    /*if(lastFloor > floorToGoTO.get())
+    {
+      direction = DirectionType.DOWN;
+      motionStatus = MotionStatusTypes.MOVING;
+
+      if(lastFloor - floorToGoTO.get() == 1)
+      {
+        motorSimulation.setSpeed(new Speed(decreaseByRate(beforeStopSpeed)));
+      }
+      else
+        motorSimulation.setSpeed(new Speed(increaseByRate(topSpeed)));
+    }
+    else if(lastFloor < floorToGoTO.get())
+    {
+      direction = DirectionType.UP;
+      motionStatus = MotionStatusTypes.MOVING;
+
+      if(floorToGoTO.get() - lastFloor == 1)
+      {
+        motorSimulation.setSpeed(new Speed(increaseByRate(-beforeStopSpeed)));
+      }
+      else
+        motorSimulation.setSpeed(new Speed(decreaseByRate(-topSpeed)));
+    }
+    else
+    {
+      if(direction == DirectionType.DOWN)
+      {
+        if(sensorDetected)
+        {
+          motorSimulation.setSpeed(new Speed(0));
+          motionStatus = MotionStatusTypes.STOPPED;
+        }
+      }
+
+      else if(direction == DirectionType.UP)
+      {
+        if(!sensorDetected)
+        {
+          motorSimulation.setSpeed(new Speed(0));
+          motionStatus = MotionStatusTypes.STOPPED;
+        }
+      }
+    }
+    *///////////////////////////////////////////////////////////////////////////////////////////////////
+    //end of commented part
+
+
+
+
     if(lastFloor > floorToGoTO.get())
     {
 //      if (motorSimulation.getSpeed().equals(speedProfile.get(speedProfile.size() / 2)))
@@ -142,20 +205,5 @@ class MotionControl implements LogicEntity
       //if we are approaching the desired floor, we should decrease speed.
       motorSimulation.setSpeed(new Speed(decreaseByRate(speedProfile.get(speedProfile.size()-1))));
     }
-
-
-    //Javi's
-     if(lastFloor > floorToGoTO.get())
-     {
-     motorSimulation.setSpeed(new Speed(0.5));
-     }
-     else if (lastFloor < floorToGoTO.get())
-     {
-     motorSimulation.setSpeed(new Speed(-0.5));
-     }
-     else
-     {
-     motorSimulation.setSpeed(new Speed(0));
-     }
 
   */
