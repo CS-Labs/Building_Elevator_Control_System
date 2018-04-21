@@ -21,9 +21,9 @@ class MotionControl implements LogicEntity
 
   //constants for speed profile
   private final double topSpeed = 25;
-  private final double beforeStopSpeed = 0.1;
-  private final double increaseRate = 0.025;
-  private final double decreaseRate = 0.025;
+  private final double beforeStopSpeed = 5;
+  private final double increaseRate = 0.1;
+  private final double decreaseRate = 0.1;
 
 
 
@@ -110,6 +110,8 @@ class MotionControl implements LogicEntity
         }
       }
     }
+
+    //System.out.println(motorSimulation.getSpeed().get());
   }
 
   public FloorNumber getLastFloor()
