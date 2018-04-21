@@ -22,12 +22,11 @@ class MotionControl implements LogicEntity
   //constants for speed profile
   private final double topSpeed = 25;
   private final double beforeStopSpeed = 0.1;
-  private final double increaseRate = 0.005;
-  private final double decreaseRate = 0.005;
+  private final double increaseRate = 0.025;
+  private final double decreaseRate = 0.025;
 
 
 
-  //TODO I think the position simulation is supposed to take place inside of Motion simulation but we can update that after the demo.
   @Override
   public void process(double deltaSeconds)
   {
@@ -65,7 +64,6 @@ class MotionControl implements LogicEntity
     speedProfile.add(0);
     speedProfile.add(1);
     speedProfile.add(0);
-
     //Updated speed by Mina and Javier
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
     if(lastFloor > floorToGoTO.get())
@@ -112,40 +110,6 @@ class MotionControl implements LogicEntity
         }
       }
     }
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-    //end of commented part
-
-
-
-//Christian stuff
-    /*if(lastFloor > floorToGoTO.get())
-    {
-//      if (motorSimulation.getSpeed().equals(speedProfile.get(speedProfile.size() / 2)))
-//      {
-//        motorSimulation.setSpeed(new Speed(speedProfile.get(speedProfile.size() / 2)));
-//      }
-//      else
-//      {
-//        increaseByRate(1);
-//      }
-      direction = DirectionType.DOWN;
-      motionStatus = MotionStatusTypes.MOVING;
-      motorSimulation.setSpeed(new Speed(25));
-    }
-    else if (lastFloor < floorToGoTO.get())
-    {
-      direction = DirectionType.UP;
-      motionStatus = MotionStatusTypes.MOVING;
-      motorSimulation.setSpeed(new Speed(-25));
-    }
-    else
-    {
-//      direction = DirectionType.NONE;
-      motionStatus = MotionStatusTypes.STOPPED;
-      motorSimulation.setSpeed(new Speed(0.0));
-      //if we are approaching the desired floor, we should decrease speed.
-     // motorSimulation.setSpeed(new Speed(decreaseByRate(speedProfile.get(speedProfile.size()-1))));
-    }*/
   }
 
   public FloorNumber getLastFloor()
@@ -175,35 +139,3 @@ class MotionControl implements LogicEntity
   }
 
 }
-
-/*
-  private void speedUpdate()
-  {
-    //Mina's speed profile should go here
-    //experimental speed profile
-    //negative speed is UP. positive is down.
-    ArrayList<Integer> speedProfile = new ArrayList<>();
-    speedProfile.add(0);
-    speedProfile.add(-1);
-    speedProfile.add(0);
-
-    int floorToGoInt = floorToGoTO.get();
-
-    if (floorToGoInt - lastFloor >= 1)
-    {
-      if (motorSimulation.getSpeed().equals(speedProfile.get(speedProfile.size() / 2)))
-      {
-        motorSimulation.setSpeed(new Speed(speedProfile.get(speedProfile.size() / 2)));
-      }
-      else
-      {
-        increaseByRate(1);
-      }
-    }
-    else
-    {
-      //if we are approaching the desired floor, we should decrease speed.
-      motorSimulation.setSpeed(new Speed(decreaseByRate(speedProfile.get(speedProfile.size()-1))));
-    }
-
-  */

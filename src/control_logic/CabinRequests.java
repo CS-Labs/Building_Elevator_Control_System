@@ -11,15 +11,12 @@ class CabinRequests
     // need to change these
     private static final double probability = .00025;
 
-    CabinRequests() {
-    }
 
     public HashSet<FloorNumber> getRequests() {
         Random r = new Random();
         for(int i = ControlLogicGlobals.MINFLOOR.get(); i <= ControlLogicGlobals.MAXFLOOR.get(); i+=1) {
             if (r.nextDouble() < probability) {
                 requests.add(new FloorNumber(i));
-//                System.out.println("cabin request");
             }
         }
         return requests;

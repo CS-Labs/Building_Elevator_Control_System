@@ -2,6 +2,7 @@ package control_logic;
 
 import application.ControlPanel;
 import application.ControlPanelSnapShot;
+import application.SystemOverviewPanel;
 import engine.LogicEntity;
 import engine.SceneManager;
 import javafx.util.Pair;
@@ -16,22 +17,18 @@ public class BuildingControl implements LogicEntity
 
     private ControlPanelSnapShot m_ControlPanelSnapShot;
     private ControlPanel m_ControlPanel;
-    private ViewTypes m_PreviousView = ViewTypes.OVERVIEW; //TODO: What is our starting view.
+    private ViewTypes m_PreviousView = ViewTypes.OVERVIEW;
     private ArrayList<Cabin> cabins = new ArrayList<>();
     private FloorRequests floorrequests = new FloorRequests();
     private DoorControl _doorControl;
     private SceneManager _alwaysActive;
     private RenderEntityManager m_RenderEntityManager;
-//    private AtomicBoolean interference = new AtomicBoolean(false);
     private BuildingFireAlarm alarm;
     private ArrayList<CabinStatus> m_Statuses = new ArrayList<>();
-    private ArrayList<FloorNumber> m_NextFloors;
-    private boolean fire = false;
-    private boolean manualFireAlarmPress = false;
+    private ArrayList<FloorNumber> m_NextFloors = new ArrayList<>();
+    private ArrayList<Boolean> cycleChecks = new ArrayList<>(Arrays.asList(false, false, false, false));
+    private ArrayList<Double> timers = new ArrayList<>(Arrays.asList(0.0, 0.0, 0.0, 0.0));
 
-
-
-    private int previousDest = -1;
 
     public BuildingControl(ControlPanel controlPanel)
     {
@@ -62,40 +59,64 @@ public class BuildingControl implements LogicEntity
         m_ControlPanelSnapShot = m_ControlPanel.getSnapShot();
         ViewTypes currentView = m_ControlPanelSnapShot.currentView;
         // Get the latest cabin snap shots.
-        for(Cabin cabin : cabins){
-            CabinStatus status = cabin.getStatus();
+        for(int i = 0; i < cabins.size(); i++){
+            CabinStatus status = cabins.get(i).getStatus();
             m_Statuses.add(status);
             // If the cabin has arrived at it's destination notify of arrival.
-            if(status.getLastFloor() == status.getDestination() && status.getMotionStatus() == MotionStatusTypes.STOPPED){
-                // Upon arrival;
-                // 0. Remove request from cabin.
-                // 1. Signal of arrival.
-                // 2. Open doors.
-                // 3. Close doors. (WHILE checking if interference has been detected).
-                //    a. If interference is detected open doors (go to step 2).
-                // 4. Allow Cabin to start moving to service next request.  (signal the algorithm).
-                cabin.removeRequest(status.getLastFloor()); // Remove cabin request.
-                floorrequests.notifyOfArrival(status.getLastFloor(),status.getCabinNumber(), status.getDirection()); // Signal arrival.
-                m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(status.getLastFloor()); // Turn off button light.
+            if(status.getLastFloor().equals(status.getDestination()) && status.getMotionStatus() == MotionStatusTypes.STOPPED){
+                FloorNumber lastFloor = status.getLastFloor();
+                CabinNumber cabinNumber = status.getCabinNumber();
+                DirectionType direction = status.getDirection();
+                floorrequests.notifyOfArrival(lastFloor, cabinNumber, direction); // Signal arrival.
+                m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(lastFloor); // Turn off button light.
                 ArrivalLightStates light;
-                if(status.getDirection() == DirectionType.UP) light = ArrivalLightStates.ARRIVAL_GOING_UP;
-                else if(status.getDirection() == DirectionType.DOWN) light = ArrivalLightStates.ARRIVAL_GOING_DOWN;
+                if(direction == DirectionType.UP) light = ArrivalLightStates.ARRIVAL_GOING_UP;
+                else if(direction == DirectionType.DOWN) light = ArrivalLightStates.ARRIVAL_GOING_DOWN;
                 else light = ArrivalLightStates.NO_ARRIVAL;
                 m_RenderEntityManager.arrivalLightRenderer.setArrivalLightState(light);
-                //TODO add opening doors.
-                //TODO add closing doors and turning off arrival light visual. (only turn off light when fully closed).
-                if(currentView != ViewTypes.OVERVIEW && _doorControl.interferenceDetected())
+                if(!cycleChecks.get(i) && _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.CLOSED || _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.OPENING)
                 {
-                    //TODO open doors again.
+                    _doorControl.open(lastFloor, cabinNumber);
+                    Pair<Double,Double> openPercentages = _doorControl.getInnerOuterDoorPercentageOpen(lastFloor, cabinNumber);
+                    System.out.println(openPercentages.getKey() + " " + openPercentages.getValue());
+                    m_RenderEntityManager.updateDoorLocs(openPercentages.getKey(), openPercentages.getValue());
                 }
+                if(_doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.OPENED) timers.set(i, timers.get(i) + 0.15);
+                if(timers.get(i) > 100 && _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.OPENED || _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.CLOSING)
+                {
+                    _doorControl.close(lastFloor, cabinNumber);
+                    Pair<Double,Double> closedPercentages = _doorControl.getInnerOuterDoorPercentageOpen(lastFloor, cabinNumber);
+                    System.out.println(closedPercentages.getKey() + " " + closedPercentages.getValue());
+                    m_RenderEntityManager.updateDoorLocs(closedPercentages.getKey(), closedPercentages.getValue());
+                    if(currentView != ViewTypes.OVERVIEW && _doorControl.interferenceDetected())
+                    {
+                        timers.set(i,0.0);
+                        _doorControl.open(lastFloor, cabinNumber);
+                    }
+                    if(closedPercentages.getKey() < 0.1) cycleChecks.set(i,true);
+                }
+                if(cycleChecks.get(i) && _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.CLOSED)
+                {
+                    timers.set(i,0.0);
+                    m_RenderEntityManager.arrivalLightRenderer.setArrivalLightState(ArrivalLightStates.NO_ARRIVAL);
+                    cabins.get(i).removeRequest(lastFloor); // VERY IMPORTANT.
+                    //TODO REMOVE REQUEST FROM DATA STRUCTURE IN ALGORITHM (VERY IMPORTANT)
+                }
+
+
             }
         }
+
 
         // If the user is viewing the inside of one of the cabins then render the cabin.
         if(currentView != ViewTypes.OVERVIEW)
         {
             CabinStatus visibleCabin = m_Statuses.get(currentView.toInt()-1);
             m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloor());
+            m_RenderEntityManager.destinationFloorRenderer.setFloorNumber(visibleCabin.getDestination());
+            if(m_ControlPanelSnapShot.currentView != m_PreviousView) { // Prevent meaningless re-rendering.
+                for (int i = 1; i <= 10; i++) m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(new FloorNumber(i));
+            }
             for(FloorNumber fr : visibleCabin.getAllActiveRequests())  m_RenderEntityManager.buttonPanelRenderer.turnOnFloorButton(fr);
         }
 
@@ -114,49 +135,50 @@ public class BuildingControl implements LogicEntity
 
 
         // Merge any requests from the manager with any randomly generated ones.
-        ArrayList<CallButtons> callButtons = floorrequests.getFloorRequests();
-        if(m_ControlPanelSnapShot.currentView != ViewTypes.OVERVIEW)
-        {
-            CabinStatus inViewCabin = m_Statuses.get(m_ControlPanelSnapShot.currentView.toInt()-1);
+        if(m_ControlPanelSnapShot.currentView != ViewTypes.OVERVIEW) {
+            CabinStatus inViewCabin = m_Statuses.get(m_ControlPanelSnapShot.currentView.toInt() - 1);
             HashSet<FloorNumber> requests = inViewCabin.getAllActiveRequests();
             requests.addAll(m_ControlPanelSnapShot.manualFloorsPresses);
             inViewCabin.setRequests(requests);
-            Pair<DirectionType, FloorNumber> managerRequest = m_ControlPanelSnapShot.upDownEvent;
-            if(managerRequest.getKey() != DirectionType.NONE)
-            {
-                CallButtons managerCallButton = new CallButtons(managerRequest.getValue(), managerRequest.getKey());
-                managerCallButton.setButtonPressedState(true);
-                callButtons.add(managerCallButton);
-            }
+        }
+        ArrayList<Pair<CallButtons,CallButtons>> callButtons = floorrequests.getFloorRequests();
+        ArrayList<Pair<CallButtons,CallButtons>> managerCallButtons = floorrequests.getFloorRequests();
+        Iterator<Pair<CallButtons,CallButtons>> it1 = callButtons.iterator();
+        Iterator<Pair<CallButtons,CallButtons>> it2 = managerCallButtons.iterator();
+        while(it1.hasNext() && it2.hasNext()) {
+            Pair<CallButtons, CallButtons> buttons = it1.next();
+            Pair<CallButtons,CallButtons> managerButtons = it2.next();
+            buttons.getKey().setButtonPressedState(buttons.getKey().isPressed() || managerButtons.getKey().isPressed());
+            buttons.getValue().setButtonPressedState(buttons.getValue().isPressed() || managerButtons.getValue().isPressed());
         }
         // Wipe requests for locked cabins or all cabins if a fire has occurred before sending it to the algorithm.
-        // TODO This does not clear any CallButtons. It might be better to merge call buttons into the requests
-        // TODO before we send them to the algorithm.
         ArrayList<Boolean> lockedPanels = m_ControlPanelSnapShot.lockedPanels;
         for(int i = 0; i < lockedPanels.size(); i++)
         {
-            if(lockedPanels.get(i)) m_Statuses.get(i).setRequests(new HashSet<>());
+            if(lockedPanels.get(i))
+            {
+                m_Statuses.get(i).setRequests(new HashSet<>());
+                cabins.get(i).clearRequests();
+            }
         }
         if(alarm.isOn())
         {
             for(CabinStatus cs : m_Statuses) cs.setRequests(new HashSet<>());
+            for(Cabin cabin : cabins) cabin.clearRequests();
+            callButtons.clear();
+            floorrequests.clearFloorRequests();
         }
-
         // Now send the data to the Elevator Algorithm.
         // The algorithm will schedule the cabins and return the current
         // destination floor of each cabin.
-        m_NextFloors = ea.schedule(m_Statuses,callButtons,alarm.isOn());
+      //  m_NextFloors = ea.schedule(m_Statuses,null,alarm.isOn());
+
+        // Now update each of the cabins destination floors
+     //   for(int i = 0; i < cabins.size(); i++) cabins.get(i).setDestination(m_NextFloors.get(i));
 
 
-        // Now update the cabins destinations.
-        for(CabinStatus cs : m_Statuses) {
-            if (cs.getDestination().get() > 0) {
-                m_RenderEntityManager.destinationFloorRenderer.setFloorNumber(cs.getDestination());
-                if (cs.getDestination().get() != previousDest) {
-                    previousDest = cs.getDestination().get();
-                }
-            }
-        }
+
+
     }
 
     private void m_UpdateViewCheck(ViewTypes updatedView)

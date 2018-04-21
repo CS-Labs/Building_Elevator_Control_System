@@ -21,6 +21,10 @@ public class CabinNumber
 
     @Override
     public int hashCode() {
-        return this.get();
+        int hash = this.m_CabinNumber;
+        hash ^= (hash << 13);
+        hash ^= (hash >>> 17);
+        hash ^= (hash << 5);
+        return hash;
     }
 }

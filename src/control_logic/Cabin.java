@@ -41,4 +41,6 @@ class Cabin
         this.cabinstatus.setDestination(floor);
         motioncontrol.setDestination(floor);
     }
+
+    public void clearRequests() {cabinrequests.clearRequests();}
 }

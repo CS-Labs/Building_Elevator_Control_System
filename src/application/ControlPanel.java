@@ -2,6 +2,8 @@ package application;
 
 
 
+import control_logic.CallButtons;
+import control_logic.ControlLogicGlobals;
 import javafx.util.Pair;
 import named_types.DirectionType;
 import named_types.FloorNumber;
@@ -26,16 +28,22 @@ public class ControlPanel extends GridPane
     private boolean m_KeyChange = false;
     private SceneManager m_ElevatorViewMgr = new SceneManager(); // Only on screen when viewing inside elevators.
     private SceneManager m_SystemOverviewMgr = new SceneManager(); // Only on screen when viewing system overview.
-    private Pair<DirectionType, named_types.FloorNumber> m_UpDownEvent = new Pair<>(DirectionType.NONE, new FloorNumber(-1));
+    private ArrayList<Pair<CallButtons, CallButtons>> m_UpDownEvents = new ArrayList<>();
     ControlPanel()
     {
+        m_UpDownEvents.add(new Pair<>(new CallButtons(ControlLogicGlobals.MINFLOOR, DirectionType.UP), new CallButtons(ControlLogicGlobals.MINFLOOR, DirectionType.DOWN)));
+        for(int f = ControlLogicGlobals.MINFLOOR.get() + 1; f <= (ControlLogicGlobals.MAXFLOOR.get() - 1); f++){
+            m_UpDownEvents.add(new Pair<>(new CallButtons(new FloorNumber(f), DirectionType.UP),new CallButtons(new FloorNumber(f), DirectionType.DOWN)));
+        }
+        m_UpDownEvents.add(new Pair<>(new CallButtons(ControlLogicGlobals.MAXFLOOR, DirectionType.UP), new CallButtons(ControlLogicGlobals.MAXFLOOR, DirectionType.DOWN)));
+
         GridPane constantPanel = m_SetupConstantPanel();
        // m_SystemOverviewMgr.add(new OverviewPanel(0,0));
         m_SystemOverviewMgr.add(new FloorRequestPanel(400,0));
         m_ElevatorViewMgr.add(new ElevatorPanel(400,0));
         // Note, the bottom panel never changes so we don't need to add it to a scene manager.
         Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, constantPanel));
-        m_ElevatorViewMgr.activateAll();
+        m_SystemOverviewMgr.activateAll();
         m_signalInterests();
     }
 
@@ -94,9 +102,9 @@ public class ControlPanel extends GridPane
     // No values should be passed by reference to the snap-shot.
     public ControlPanelSnapShot getSnapShot()
     {
-        Pair<DirectionType, FloorNumber> upDownEvent = new Pair<>(m_UpDownEvent.getKey(), m_UpDownEvent.getValue());
+        ArrayList<Pair<CallButtons,CallButtons>> upDownEvents = new ArrayList<>(m_UpDownEvents);
         ControlPanelSnapShot snapShot = new ControlPanelSnapShot(new HashSet<>(m_FloorsButtonsPressed),
-                m_AlarmPressed, new ArrayList<>(m_LockedPanels), m_CurrentView, m_KeyChange, upDownEvent);
+                m_AlarmPressed, new ArrayList<>(m_LockedPanels), m_CurrentView, m_KeyChange, upDownEvents);
         resetStatus();
         return snapShot;
     }
@@ -104,9 +112,13 @@ public class ControlPanel extends GridPane
     private void resetStatus()
     {
         m_FloorsButtonsPressed.clear();
-        m_UpDownEvent = new Pair<>(DirectionType.NONE, new FloorNumber(-1));;
         m_AlarmPressed = false;
         m_KeyChange = false;
+        for(Pair<CallButtons, CallButtons> buttons: m_UpDownEvents)
+        {
+            buttons.getKey().setButtonPressedState(false);
+            buttons.getValue().setButtonPressedState(false);
+        }
     }
 
 
@@ -133,10 +145,12 @@ public class ControlPanel extends GridPane
                     m_KeyChange = true;
                     break;
                 case ControlPanelGlobals.MANAGER_UP:
-                    m_UpDownEvent = new Pair<DirectionType, FloorNumber>(DirectionType.UP, (FloorNumber) message.getMessageData());
+                    FloorNumber upFloor = (FloorNumber) message.getMessageData();
+                    m_UpDownEvents.get(upFloor.get()).getKey().setButtonPressedState(true);
                     break;
                 case ControlPanelGlobals.MANAGER_DOWN:
-                    m_UpDownEvent = new Pair<DirectionType, FloorNumber>(DirectionType.DOWN, (FloorNumber) message.getMessageData());
+                    FloorNumber downFloor = (FloorNumber) message.getMessageData();
+                    m_UpDownEvents.get(downFloor.get()).getValue().setButtonPressedState(true);
                     break;
                 default:
                     throw new IllegalArgumentException("Unhandled Message Received.");

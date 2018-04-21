@@ -1,5 +1,7 @@
 package control_logic;
 
+import application.ControlPanelGlobals;
+import javafx.util.Pair;
 import named_types.CabinNumber;
 import named_types.DirectionType;
 import named_types.FloorNumber;
@@ -8,20 +10,18 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class FloorRequests{
-    private ArrayList<CallButtons> buttons = new ArrayList<>();
+    private ArrayList<Pair<CallButtons, CallButtons>> buttons = new ArrayList<>();
     private ArrayList<ArrivalSignals> signals = new ArrayList<>();
     // this really depends on how often getfloorrequests is called and what we want the probability to be
     private static final double probability = .00025;
 
     public FloorRequests(){
-        buttons.add(new CallButtons(ControlLogicGlobals.MINFLOOR, DirectionType.UP));
-        buttons.add(new CallButtons(ControlLogicGlobals.MINFLOOR, DirectionType.DOWN));
-
+        buttons.add(new Pair<>(new CallButtons(ControlLogicGlobals.MINFLOOR, DirectionType.UP), new CallButtons(ControlLogicGlobals.MINFLOOR, DirectionType.DOWN)));
         // for all floors
         for(int f = ControlLogicGlobals.MINFLOOR.get() + 1; f <= (ControlLogicGlobals.MAXFLOOR.get() - 1); f += 1){
-            buttons.add(new CallButtons(new FloorNumber(f), DirectionType.UP));
-            buttons.add(new CallButtons(new FloorNumber(f), DirectionType.DOWN));
+            buttons.add(new Pair<>(new CallButtons(new FloorNumber(f), DirectionType.UP),new CallButtons(new FloorNumber(f), DirectionType.DOWN)));
         }
+        buttons.add(new Pair<>(new CallButtons(ControlLogicGlobals.MAXFLOOR, DirectionType.UP), new CallButtons(ControlLogicGlobals.MAXFLOOR, DirectionType.DOWN)));
 
         // for all floors
         for(int f = ControlLogicGlobals.MINFLOOR.get(); f < ControlLogicGlobals.MAXFLOOR.get(); f += 1){
@@ -32,12 +32,23 @@ public class FloorRequests{
         }
     }
 
+
+
     public void notifyOfArrival(FloorNumber floor, CabinNumber cabin, DirectionType direction){
-        for(CallButtons button : buttons){
-            if(button.getType() == direction && button.getFloor() == floor){
-                button.setButtonPressedState(false);
+        for(Pair<CallButtons, CallButtons> upDownButtons : buttons){
+            CallButtons upButton = upDownButtons.getKey();
+            CallButtons downButton = upDownButtons.getValue();
+            if(upButton.getType() == direction && upButton.getFloor().equals(floor))
+            {
+                upButton.setButtonPressedState(false);
                 break;
             }
+            if(downButton.getType() == direction && downButton.getFloor().equals(floor))
+            {
+                downButton.setButtonPressedState(false);
+                break;
+            }
+
         }
         for(ArrivalSignals signal : signals){
             if(signal.getFloor().equals(floor) &&  signal.getCabinNumber().equals(cabin)){
@@ -56,29 +67,27 @@ public class FloorRequests{
         }
     }
 
-    public ArrayList<CallButtons> getButtons() {
-        ArrayList<CallButtons> copies = new ArrayList<>();
 
-        for(CallButtons button : buttons){
-            copies.add(button.makeCopy());
-        }
-        return copies;
-    }
-
-    // this needs to change a bit
-    public ArrayList<CallButtons> getFloorRequests(){
-        ArrayList<CallButtons> newrequests = new ArrayList<>();
+    public ArrayList<Pair<CallButtons,CallButtons>> getFloorRequests(){
+        ArrayList<Pair<CallButtons,CallButtons>> updatedRequests = new ArrayList<>();
 
         Random r = new Random();
-        for(CallButtons button : buttons){
-            if(r.nextDouble() < probability && !button.isPressed()) {
-//                System.out.println("request");
-                button.setButtonPressedState(true);
-                newrequests.add(button.makeCopy());
-            }
+        for(Pair<CallButtons, CallButtons> upDownButtons : buttons){
+            CallButtons upButton = upDownButtons.getKey();
+            CallButtons downButton = upDownButtons.getValue();
+            if(upButton.getFloor().get() != 10 && r.nextDouble() < probability) upButton.setButtonPressedState(true);
+            if(downButton.getFloor().get() != 1 && r.nextDouble() < probability) downButton.setButtonPressedState(true);
+            updatedRequests.add(new Pair<>(upButton.makeCopy(), downButton.makeCopy()));
         }
+        return updatedRequests;
+    }
 
-        return newrequests;
+    public void clearFloorRequests(){
+        for(Pair<CallButtons, CallButtons> upDownButtons : buttons) {
+            upDownButtons.getKey().setButtonPressedState(false);
+            upDownButtons.getValue().setButtonPressedState(false);
+        }
+        for(ArrivalSignals arrivalSignal : signals) arrivalSignal.setState(false);
     }
 
     public ArrayList<ArrivalSignals> getArrivalSignals(){

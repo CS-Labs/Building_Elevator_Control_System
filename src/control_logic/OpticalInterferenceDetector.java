@@ -1,5 +1,6 @@
 package control_logic;
 
+import application.SystemOverviewPanel;
 import engine.Actor;
 import engine.MouseButtonTypes;
 import engine.MouseInputComponent;
@@ -18,6 +19,7 @@ public class OpticalInterferenceDetector
     private boolean manualInterference = false;
     private Random rand = new Random();
 
+    OpticalInterferenceDetector() {new MouseInputHandler().enableMouseInputComponent();}
 
     public boolean interferenceDetected() {
         if(manualInterference){

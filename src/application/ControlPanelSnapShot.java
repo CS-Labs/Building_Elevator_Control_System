@@ -1,5 +1,6 @@
 package application;
 
+import control_logic.CallButtons;
 import javafx.util.Pair;
 import named_types.DirectionType;
 import named_types.FloorNumber;
@@ -16,14 +17,15 @@ public class ControlPanelSnapShot {
     public ArrayList<Boolean> lockedPanels;
     public ViewTypes currentView;
     public boolean isKeyLocked;
-    public Pair<DirectionType, FloorNumber> upDownEvent;
+    public ArrayList<Pair<CallButtons,CallButtons>> upDownEvents;
     ControlPanelSnapShot(HashSet<FloorNumber> manualFloorsPresses, boolean isAlarmOn,
-                         ArrayList<Boolean> lockedPanels, ViewTypes currentView, boolean isKeyLocked, Pair<DirectionType, FloorNumber> event) {
+                         ArrayList<Boolean> lockedPanels, ViewTypes currentView, boolean isKeyLocked,
+                         ArrayList<Pair<CallButtons,CallButtons>> upDownEvent) {
         this.manualFloorsPresses = manualFloorsPresses;
         this.isAlarmOn = isAlarmOn;
         this.lockedPanels = lockedPanels;
         this.currentView = currentView;
         this.isKeyLocked = isKeyLocked;
-        this.upDownEvent = event;
+        this.upDownEvents = upDownEvents;
     }
 }

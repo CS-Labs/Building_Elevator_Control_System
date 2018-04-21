@@ -111,6 +111,14 @@ class RenderEntityManager
         cabinOutsideFour.updateYLocation(cabins.get(3).getLastFloor());
     }
 
+    public void updateDoorLocs(double innerPercentage, double outerPercentage)
+    {
+        insideDoorLeft.update(innerPercentage);
+        insideDoorRight.update(innerPercentage);
+        outsideDoorLeft.update(outerPercentage);
+        outsideDoorRight.update(outerPercentage);
+    }
+
     public void updateFloorUpDownPanel(FloorNumber floor, DirectionType direction)
     {
         ArrivalLightStates newLightState;
@@ -224,7 +232,7 @@ class RenderEntityManager
         }
 
 
-        public void update(double percentage, DoorStatusType status)
+        public void update(double percentage)
         {
             if (m_Side == DoorSideTypes.LEFT) m_XPos = m_HBound - (percentage * m_Width);
             if (m_Side == DoorSideTypes.RIGHT) m_XPos = m_LBound + (percentage * m_Width);

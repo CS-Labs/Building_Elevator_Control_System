@@ -68,6 +68,22 @@ public class FloorRequestPanel extends GridPane
                                   Number arg1, Number arg2)
               {
                   m_ActiveFloor = new FloorNumber(arg2.intValue()+1);
+                  if(m_ActiveFloor.get() == 1)
+                  {
+                      upButton.setVisible(true);
+                      downButton.setVisible(false);
+                  }
+                  else if(m_ActiveFloor.get() == 10)
+                  {
+                      downButton.setVisible(true);
+                      upButton.setVisible(false);
+                  }
+
+                  else
+                  {
+                      downButton.setVisible(true);
+                      upButton.setVisible(true);
+                  }
               }
           });
         buttonPanel.add(floorSelector, 1, 2, 5, 1);
