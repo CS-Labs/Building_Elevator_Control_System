@@ -1,12 +1,11 @@
 package control_logic;
 
-import application.SystemOverviewPanel;
+import java.util.ArrayList;
+import java.util.Random;
+
 import engine.Actor;
 import engine.MouseButtonTypes;
 import engine.MouseInputComponent;
-
-import java.util.ArrayList;
-import java.util.Random;
 
 public class OpticalInterferenceDetector
 {

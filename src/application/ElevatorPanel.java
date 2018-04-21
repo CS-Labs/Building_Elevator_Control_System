@@ -1,18 +1,25 @@
 package application;
 
-import named_types.FloorNumber;
-import javafx.geometry.Insets;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
-
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
+
+import javafx.geometry.Insets;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.RowConstraints;
+import named_types.FloorNumber;
 
 class ElevatorPanel extends GridPane
 {
     ElevatorPanel(int x, int y)
     {
+        
         this.setStyle("-fx-background-color: #000000");
         this.setLayoutX(x);
         this.setLayoutY(y);
