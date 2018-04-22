@@ -1,13 +1,12 @@
 package application;
 
-import control_logic.CallButtons;
-import javafx.util.Pair;
-import named_types.DirectionType;
-import named_types.FloorNumber;
-import named_types.ViewTypes;
-
 import java.util.ArrayList;
 import java.util.HashSet;
+
+import control_logic.CallButtons;
+import javafx.util.Pair;
+import named_types.FloorNumber;
+import named_types.ViewTypes;
 
 // POD class.
 public class ControlPanelSnapShot {
@@ -26,6 +25,6 @@ public class ControlPanelSnapShot {
         this.lockedPanels = lockedPanels;
         this.currentView = currentView;
         this.isKeyLocked = isKeyLocked;
-        this.upDownEvents = upDownEvents;
+        this.upDownEvents = upDownEvent;
     }
 }
