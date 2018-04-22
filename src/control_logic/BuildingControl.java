@@ -101,6 +101,7 @@ public class BuildingControl implements LogicEntity
                     m_RenderEntityManager.arrivalLightRenderer.setArrivalLightState(ArrivalLightStates.NO_ARRIVAL);
                     cabins.get(i).removeRequest(lastFloor); // VERY IMPORTANT.
                     //TODO REMOVE REQUEST FROM DATA STRUCTURE IN ALGORITHM (VERY IMPORTANT)
+                    ea.pop(status);
                 }
 
 
@@ -171,10 +172,10 @@ public class BuildingControl implements LogicEntity
         // Now send the data to the Elevator Algorithm.
         // The algorithm will schedule the cabins and return the current
         // destination floor of each cabin.
-      //  m_NextFloors = ea.schedule(m_Statuses,null,alarm.isOn());
+        m_NextFloors = ea.schedule(m_Statuses,callButtons,alarm.isOn());
 
         // Now update each of the cabins destination floors
-     //   for(int i = 0; i < cabins.size(); i++) cabins.get(i).setDestination(m_NextFloors.get(i));
+        for(int i = 0; i < cabins.size(); i++) cabins.get(i).setDestination(m_NextFloors.get(i));
 
 
 
