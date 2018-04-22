@@ -27,18 +27,20 @@ public class BuildingControl implements LogicEntity
     private ArrayList<CabinStatus> m_Statuses = new ArrayList<>();
     private ArrayList<FloorNumber> m_NextFloors = new ArrayList<>();
     private ArrayList<Boolean> cycleChecks = new ArrayList<>(Arrays.asList(false, false, false, false));
-    private ArrayList<Double> timers = new ArrayList<>(Arrays.asList(0.0, 0.0, 0.0, 0.0));
+//    private ArrayList<Boolean> cycleChecks = new ArrayList<>(Arrays.asList(true,true,true,true));
 
+    private ArrayList<Double> timers = new ArrayList<>(Arrays.asList(0.0, 0.0, 0.0, 0.0));
+    private int numCabins = 1;
 
     public BuildingControl(ControlPanel controlPanel)
     {
         // add cabins
-        for(int i = 0; i < 4; i+=1){
+        for(int i = 0; i < numCabins; i+=1){
             cabins.add(i,new Cabin(new CabinNumber(i+1)));
         }
         ea = new ElevatorAlgorithm(cabins);
         m_ControlPanel = controlPanel;
-        _doorControl = new DoorControl(this, 10, 4);
+        _doorControl = new DoorControl(this, 10, numCabins);
         _alwaysActive = new SceneManager();
         _alwaysActive.add(_doorControl);
         _alwaysActive.activateAll();
@@ -74,7 +76,8 @@ public class BuildingControl implements LogicEntity
                 else if(direction == DirectionType.DOWN) light = ArrivalLightStates.ARRIVAL_GOING_DOWN;
                 else light = ArrivalLightStates.NO_ARRIVAL;
                 m_RenderEntityManager.arrivalLightRenderer.setArrivalLightState(light);
-                if(!cycleChecks.get(i) && _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.CLOSED || _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.OPENING)
+
+                if(!cycleChecks.get(i) && _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.CLOSED || _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.OPENING )//&& m_NextFloors.get(i).get() != -1)
                 {
                     _doorControl.open(lastFloor, cabinNumber);
                     Pair<Double,Double> openPercentages = _doorControl.getInnerOuterDoorPercentageOpen(lastFloor, cabinNumber);
@@ -95,12 +98,11 @@ public class BuildingControl implements LogicEntity
                     }
                     if(closedPercentages.getKey() < 0.1) cycleChecks.set(i,true);
                 }
-                if(cycleChecks.get(i) && _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.CLOSED)
+                if(_doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.CLOSED && m_NextFloors.get(i).get() != -1)
                 {
                     timers.set(i,0.0);
                     m_RenderEntityManager.arrivalLightRenderer.setArrivalLightState(ArrivalLightStates.NO_ARRIVAL);
                     cabins.get(i).removeRequest(lastFloor); // VERY IMPORTANT.
-                    //TODO REMOVE REQUEST FROM DATA STRUCTURE IN ALGORITHM (VERY IMPORTANT)
                     ea.pop(status);
                 }
 
@@ -139,6 +141,7 @@ public class BuildingControl implements LogicEntity
         if(m_ControlPanelSnapShot.currentView != ViewTypes.OVERVIEW) {
             CabinStatus inViewCabin = m_Statuses.get(m_ControlPanelSnapShot.currentView.toInt() - 1);
             HashSet<FloorNumber> requests = inViewCabin.getAllActiveRequests();
+            System.out.println(requests);
             requests.addAll(m_ControlPanelSnapShot.manualFloorsPresses);
             inViewCabin.setRequests(requests);
         }
@@ -175,7 +178,16 @@ public class BuildingControl implements LogicEntity
         m_NextFloors = ea.schedule(m_Statuses,callButtons,alarm.isOn());
 
         // Now update each of the cabins destination floors
-        for(int i = 0; i < cabins.size(); i++) cabins.get(i).setDestination(m_NextFloors.get(i));
+        for(int i = 0; i < cabins.size(); i++) {
+            if(_doorControl.getStatus(m_Statuses.get(i).getLastFloor(),m_Statuses.get(i).getCabinNumber()) == DoorStatusType.CLOSED ){//&& m_NextFloors.get(i).get() != -1) {
+                if(m_NextFloors.get(i).get() != -1) {
+                    cabins.get(i).setDestination(m_NextFloors.get(i));
+
+                    cycleChecks.set(i, false);
+                }
+
+            }
+        }
 
 
 

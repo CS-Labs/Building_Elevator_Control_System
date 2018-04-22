@@ -33,13 +33,14 @@ class CabinStatus
     public HashSet<FloorNumber> getAllActiveRequests() { return cabinrequests; }
 
     public CabinStatus getStatus() {
-        CabinStatus copy = new CabinStatus(this.getCabinNumber());
-        copy.setDestination(this.getDestination());
-        copy.setRequests(this.cabinrequests);
-        copy.setDirection(this.getDirection());
-        copy.setLastFloor(this.getLastFloor());
-        copy.setMotionStatus(this.getMotionStatus());
-        return copy;
+//        CabinStatus copy = new CabinStatus(this.getCabinNumber());
+//        copy.setDestination(this.getDestination());
+//        copy.setRequests(this.cabinrequests);
+//        copy.setDirection(this.getDirection());
+//        copy.setLastFloor(this.getLastFloor());
+//        copy.setMotionStatus(this.getMotionStatus());
+//        return copy;
+        return this;
     }
     
     public void setDirection(DirectionType direction){this.direction = direction;}

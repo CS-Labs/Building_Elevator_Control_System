@@ -38,7 +38,7 @@ public class ElevatorAlgorithm
             int floor = -1;
             // so the logic works out
 //            if(direction == DirectionType.NONE) direction = DirectionType.UP;
-            System.out.println(up.size() + " " + down.size());
+//            System.out.println(up.size() + " " + down.size());
             if(direction == 1|| direction == 0){
                 if(up.size() == 0) direction = -1;
                 else {
@@ -107,6 +107,8 @@ public class ElevatorAlgorithm
                 if (i == 0) b = pair.getKey();
                 else b = pair.getKey();
 
+                if(!b.isPressed()) break;
+
                 int best_cabin = -1;
                 int best_score = -1;
 
@@ -144,10 +146,26 @@ public class ElevatorAlgorithm
 
             // check if already scheduled
             Queues q = cabinqueues.get(cn);
-
+            System.out.println("----------");
+            for(int i : q.up){
+                System.out.print(i + " " );
+            }
+            System.out.println();
+            for(int i : q.down){
+                System.out.print(i + " " );
+            }
+            System.out.println();
+            System.out.println("----------");
             for(FloorNumber fn : requests) {
-                if (q.isIn(fn.get())) break;
-                if (cs.getLastFloor().get() == fn.get()) break;
+                if (q.isIn(fn.get())) {
+//                    System.out.println("in in");
+                    break;
+                }
+                if (cs.getLastFloor().get() == fn.get()) {
+//                    System.out.println("last floor");
+                    break;
+                }
+//                System.out.println("ADD REQUEST");
 
                 if (cs.getLastFloor().get() < fn.get()) {
                     cabinqueues.get(cn).addSorted(fn.get(), 1);
@@ -157,12 +175,12 @@ public class ElevatorAlgorithm
             }
         }
 
-        for(int i = 0; i < 4; i += 1){
+        for(int i = 0; i < cabinStatuses.size(); i += 1){
             Queues q = cabinqueues.get(i);
-            CabinStatus cs = cabinStatuses.get(i);
+//            CabinStatus cs = cabinStatuses.get(i);
             int floor = q.get();
 
-            if(floor == -1) floor = cs.getLastFloor().get();
+//            if(floor == -1) floor = cs.getLastFloor().get();
             nextFloors.add(i,new FloorNumber(floor));
         }
         return nextFloors;

@@ -13,7 +13,9 @@ public class FloorRequests{
     private ArrayList<Pair<CallButtons, CallButtons>> buttons = new ArrayList<>();
     private ArrayList<ArrivalSignals> signals = new ArrayList<>();
     // this really depends on how often getfloorrequests is called and what we want the probability to be
-    private static final double probability = .00025;
+//    private static final double probability = .00025;
+    private static final double probability = .0000;
+
 
     public FloorRequests(){
         buttons.add(new Pair<>(new CallButtons(ControlLogicGlobals.MINFLOOR, DirectionType.UP), new CallButtons(ControlLogicGlobals.MINFLOOR, DirectionType.DOWN)));
