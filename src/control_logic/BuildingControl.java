@@ -3,12 +3,12 @@ package control_logic;
 import application.ControlPanel;
 import application.ControlPanelSnapShot;
 import application.SystemOverviewPanel;
-import engine.LogicEntity;
-import engine.SceneManager;
+import engine.*;
 import javafx.util.Pair;
 import named_types.*;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BuildingControl implements LogicEntity
@@ -28,6 +28,9 @@ public class BuildingControl implements LogicEntity
     private ArrayList<FloorNumber> m_NextFloors = new ArrayList<>();
     private ArrayList<Boolean> cycleChecks = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> managerMode = new ArrayList<>(Arrays.asList(false, false, false, false));
+    private ArrayList<Boolean> safeToDepart = new ArrayList<>(Arrays.asList(true, true, true, true));
+    private ArrayList<Boolean> doorsOpening = new ArrayList<>(Arrays.asList(false, false, false, false));
+    private ConcurrentLinkedQueue<Callback> prepareElevatorForDepartureQueue = new ConcurrentLinkedQueue<>();
 
     private ArrayList<Double> timers = new ArrayList<>(Arrays.asList(0.0, 0.0, 0.0, 0.0));
     private int numCabins = 4;
@@ -64,19 +67,85 @@ public class BuildingControl implements LogicEntity
         for(int i = 0; i < cabins.size(); i++){
             CabinStatus status = cabins.get(i).getStatus();
             m_Statuses.add(status);
-            // If the cabin has arrived at it's destination notify of arrival.
-            if(status.getLastFloor().equals(status.getDestination()) && status.getMotionStatus() == MotionStatusTypes.STOPPED){
-                FloorNumber lastFloor = status.getLastFloor();
-                CabinNumber cabinNumber = status.getCabinNumber();
-                DirectionType direction = status.getDirection();
-                floorrequests.notifyOfArrival(lastFloor, cabinNumber, direction); // Signal arrival.
-                m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(lastFloor); // Turn off button light.
-                ArrivalLightStates light;
-                if(direction == DirectionType.UP) light = ArrivalLightStates.ARRIVAL_GOING_UP;
-                else if(direction == DirectionType.DOWN) light = ArrivalLightStates.ARRIVAL_GOING_DOWN;
-                else light = ArrivalLightStates.NO_ARRIVAL;
+            FloorNumber lastFloor = status.getLastFloor();
+            CabinNumber cabinNumber = status.getCabinNumber();
+            DirectionType direction = status.getDirection();
+            ArrivalLightStates light;
+            if(direction == DirectionType.UP) light = ArrivalLightStates.ARRIVAL_GOING_UP;
+            else if(direction == DirectionType.DOWN) light = ArrivalLightStates.ARRIVAL_GOING_DOWN;
+            else light = ArrivalLightStates.NO_ARRIVAL;
+            // Check if the current elevator is the one on the screen that needs its visuals updated
+            if (currentView == ViewTypes.values()[i]) {
                 m_RenderEntityManager.arrivalLightRenderer.setArrivalLightState(light);
+                Pair<Double, Double> closedPercentages = _doorControl.getInnerOuterDoorPercentageOpen(lastFloor, cabinNumber);
+                //System.out.println(closedPercentages.getKey() + " " + closedPercentages.getValue());
+                m_RenderEntityManager.updateDoorLocs(closedPercentages.getKey(), closedPercentages.getValue());
+            }
+            // If the cabin has arrived at it's destination notify of arrival.
+            if(status.getLastFloor().equals(status.getDestination()) && status.getMotionStatus() == MotionStatusTypes.STOPPED
+                    && !doorsOpening.get(i)){
+                floorrequests.notifyOfArrival(lastFloor, cabinNumber, direction); // Signal arrival
+                m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(lastFloor); // Turn off button light
 
+                doorsOpening.set(i, true);
+                // Make sure we signal that it is not safe to depart since the doors will be opening
+                safeToDepart.set(i, false);
+                // Create brand new objects for these so we get rid of the possibility
+                // of the floor/cabin number changing due to someone having a reference to it somehow
+                FloorNumber lastFloorInternal = new FloorNumber(lastFloor.get());
+                CabinNumber cabinNumberInternal = new CabinNumber(cabinNumber.get());
+                // When the door is finished closing, the following function will be called
+                // to prepare the elevator for final departure
+                Callback prepareElevatorForDeparture = () ->
+                {
+                    cabins.get(cabinNumberInternal.get() - 1).removeRequest(lastFloorInternal); // VERY IMPORTANT
+                    ea.pop(status);
+                    m_RenderEntityManager.arrivalLightRenderer.setArrivalLightState(ArrivalLightStates.NO_ARRIVAL);
+                };
+                // Dispatch the door open/close logic
+                new LogicEntity() {
+                    volatile double timeToKeepDoorsOpenSec = 10;
+                    volatile double elapsedSec = 0.0;
+                    volatile boolean keepUpdating = true;
+
+                    {
+                        Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_LOGIC_ENTITY, this));
+                        _doorControl.open(lastFloorInternal, cabinNumberInternal);
+                    }
+
+                    @Override
+                    public void process(double deltaSeconds) {
+                        if (!this.keepUpdating) return;
+                        DoorStatusType status = _doorControl.getStatus(lastFloorInternal, cabinNumberInternal);
+                        switch (status) {
+                            case OPENING:
+                                // Force this to be 0 while opening
+                                this.elapsedSec = 0.0;
+                                break;
+                            case OPENED:
+                                this.elapsedSec += deltaSeconds;
+                                // If the time is up, shut the doors
+                                if (this.elapsedSec >= this.timeToKeepDoorsOpenSec)
+                                    _doorControl.close(lastFloorInternal, cabinNumberInternal);
+                                break;
+                            case CLOSED:
+                                // Notify building control that it is safe to open
+                                safeToDepart.set(cabinNumberInternal.get() - 1, true);
+                                // Stop updating
+                                Engine.getMessagePump().sendMessage(new Message(Singleton.REMOVE_LOGIC_ENTITY, this));
+                                // Internal check just for extra safety
+                                this.keepUpdating = false;
+                                // Make sure to add this to the queue so that building control
+                                // knows that the cabin managed by this thread needs to be prepped for departure
+                                prepareElevatorForDepartureQueue.add(prepareElevatorForDeparture);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                };
+
+                /** OLD STUFF -> uncomment and it should work as before
                 if(!cycleChecks.get(i) && _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.CLOSED || _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.OPENING )//&& m_NextFloors.get(i).get() != -1)
                 {
                     System.out.println("elevator " + status.getCabinNumber().get() + " doors open");
@@ -106,11 +175,9 @@ public class BuildingControl implements LogicEntity
                     cabins.get(i).removeRequest(lastFloor); // VERY IMPORTANT.
                     ea.pop(status);
                 }
-
-
+                 */
             }
         }
-
 
         // If the user is viewing the inside of one of the cabins then render the cabin.
         if(currentView != ViewTypes.OVERVIEW)
@@ -178,18 +245,27 @@ public class BuildingControl implements LogicEntity
         // The algorithm will schedule the cabins and return the current
         // destination floor of each cabin.
 
+        // If any elevators have been added to the queue to be prepped for departure, handle this now
+        while (prepareElevatorForDepartureQueue.size() > 0) {
+            prepareElevatorForDepartureQueue.poll().handleCallback();
+        }
+
         if(!alarm.isOn()) m_NextFloors = ea.schedule(m_Statuses,callButtons,alarm.isOn(), managerMode);
         else m_NextFloors = ea.schedule(m_Statuses,managerCallButtons,alarm.isOn(), managerMode);
 
-
-
         // Now update each of the cabins destination floors
         for(int i = 0; i < cabins.size(); i++) {
-            if(_doorControl.getStatus(m_Statuses.get(i).getLastFloor(),m_Statuses.get(i).getCabinNumber()) == DoorStatusType.CLOSED ){//&& m_NextFloors.get(i).get() != -1) {
+            //if(_doorControl.getStatus(m_Statuses.get(i).getLastFloor(),m_Statuses.get(i).getCabinNumber()) == DoorStatusType.CLOSED ){//&& m_NextFloors.get(i).get() != -1) {
+            if (safeToDepart.get(i)) {
                 if(m_NextFloors.get(i).get() != -1) {
-                    cabins.get(i).setDestination(m_NextFloors.get(i));
-
-                    cycleChecks.set(i, false);
+                    // Prepare the elevator for final departure
+                    FloorNumber nextFloor = m_NextFloors.get(i);
+                    // Only notify the cabin to depart if the new next floor is different from
+                    // the last destination
+                    if (nextFloor.get() == cabins.get(i).getStatus().getDestination().get()) continue;
+                    cabins.get(i).setDestination(nextFloor);
+                    doorsOpening.set(i, false);
+                    //cycleChecks.set(i, false);
                 }
                 // alarm is on and we reached floor 1, go to manager mode
                 if(alarm.isOn() && m_Statuses.get(i).getLastFloor().get() == 1){
