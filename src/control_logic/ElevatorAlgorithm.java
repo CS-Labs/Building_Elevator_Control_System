@@ -63,6 +63,10 @@ public class ElevatorAlgorithm
                 if(!down.isEmpty()) this.down.remove(0);
             }
         }
+        public void clear(){
+            up.clear();
+            down.clear();
+        }
     }
 
     private ArrayList<Queues> cabinqueues;
@@ -96,92 +100,137 @@ public class ElevatorAlgorithm
         else return 1;
     }
 
-    public ArrayList<FloorNumber> schedule(ArrayList<CabinStatus> cabinStatuses, ArrayList<Pair<CallButtons,CallButtons>> callbuttonpairs, boolean wasFire) {
+    public ArrayList<FloorNumber> schedule(ArrayList<CabinStatus> cabinStatuses, ArrayList<Pair<CallButtons,CallButtons>> callbuttonpairs, boolean wasFire, ArrayList<Boolean> managerMode) {
         ArrayList<FloorNumber> nextFloors = new ArrayList<>();
+        if(!wasFire) {
+            for (Pair<CallButtons, CallButtons> pair : callbuttonpairs) {
+                CallButtons b;
+                for (int i = 0; i < 2; i++) {
+                    boolean break_ = false;
 
-        for (Pair<CallButtons, CallButtons> pair :callbuttonpairs) {
-            CallButtons b;
-            for (int i = 0; i < 2; i++) {
-                boolean break_ = false;
+                    if (i == 0) b = pair.getKey();
+                    else b = pair.getKey();
 
-                if (i == 0) b = pair.getKey();
-                else b = pair.getKey();
+                    if (!b.isPressed()) break;
 
-                if(!b.isPressed()) break;
+                    int best_cabin = -1;
+                    int best_score = -1;
 
-                int best_cabin = -1;
-                int best_score = -1;
+                    // check if already scheduled or already on this floor
+                    for (Queues q : cabinqueues) {
+                        if (q.isIn(b.getFloor().get())) break_ = true;
+                        for (CabinStatus cs : cabinStatuses) {
+                            if (cs.getLastFloor().get() == b.getFloor().get()) break_ = true;
+                        }
+                    }
 
-                // check if already scheduled or already on this floor
-                for (Queues q : cabinqueues) {
-                    if(q.isIn(b.getFloor().get())) break_ = true;
+                    if (break_) break;
+
                     for (CabinStatus cs : cabinStatuses) {
-                        if (cs.getLastFloor().get() == b.getFloor().get()) break_ = true;
+                        int s = suitability(cs, b);
+                        if (s > best_score) {
+                            best_score = s;
+                            best_cabin = cs.getCabinNumber().get();
+                        }
                     }
-                }
 
-                if(break_) break;
-
-                for (CabinStatus cs : cabinStatuses) {
-                    int s = suitability(cs, b);
-                    if (s > best_score) {
-                        best_score = s;
-                        best_cabin = cs.getCabinNumber().get();
-                    }
-                }
-
-                if (best_cabin >= 0) {
-                    if (cabinStatuses.get(best_cabin - 1).getLastFloor().get() < b.getFloor().get()) {
-                        cabinqueues.get(best_cabin - 1).addSorted(b.getFloor().get(), 1);
-                    } else if (cabinStatuses.get(best_cabin - 1).getLastFloor().get() > b.getFloor().get()) {
-                        cabinqueues.get(best_cabin - 1).addSorted(b.getFloor().get(), -1);
+                    if (best_cabin >= 0) {
+                        if (cabinStatuses.get(best_cabin - 1).getLastFloor().get() < b.getFloor().get()) {
+                            cabinqueues.get(best_cabin - 1).addSorted(b.getFloor().get(), 1);
+                        } else if (cabinStatuses.get(best_cabin - 1).getLastFloor().get() > b.getFloor().get()) {
+                            cabinqueues.get(best_cabin - 1).addSorted(b.getFloor().get(), -1);
+                        }
                     }
                 }
             }
-        }
 
-        for(CabinStatus cs : cabinStatuses){
-            int cn = cs.getCabinNumber().get()-1;
-            HashSet<FloorNumber> requests = cs.getAllActiveRequests();
+            for (CabinStatus cs : cabinStatuses) {
+                int cn = cs.getCabinNumber().get() - 1;
+                HashSet<FloorNumber> requests = cs.getAllActiveRequests();
 
-            // check if already scheduled
-            Queues q = cabinqueues.get(cn);
-            System.out.println("----------");
-            for(int i : q.up){
-                System.out.print(i + " " );
-            }
-            System.out.println();
-            for(int i : q.down){
-                System.out.print(i + " " );
-            }
-            System.out.println();
-            System.out.println("----------");
-            for(FloorNumber fn : requests) {
-                if (q.isIn(fn.get())) {
+                // check if already scheduled
+                Queues q = cabinqueues.get(cn);
+                System.out.println("----------");
+                for (int i : q.up) {
+                    System.out.print(i + " ");
+                }
+                System.out.println();
+                for (int i : q.down) {
+                    System.out.print(i + " ");
+                }
+                System.out.println();
+                System.out.println("----------");
+                for (FloorNumber fn : requests) {
+                    if (q.isIn(fn.get())) {
 //                    System.out.println("in in");
-                    break;
-                }
-                if (cs.getLastFloor().get() == fn.get()) {
+                        break;
+                    }
+                    if (cs.getLastFloor().get() == fn.get()) {
 //                    System.out.println("last floor");
-                    break;
-                }
+                        break;
+                    }
 //                System.out.println("ADD REQUEST");
 
-                if (cs.getLastFloor().get() < fn.get()) {
-                    cabinqueues.get(cn).addSorted(fn.get(), 1);
-                } else if (cs.getLastFloor().get() > fn.get()) {
-                    cabinqueues.get(cn).addSorted(fn.get(), -1);
+                    if (cs.getLastFloor().get() < fn.get()) {
+                        cabinqueues.get(cn).addSorted(fn.get(), 1);
+                    } else if (cs.getLastFloor().get() > fn.get()) {
+                        cabinqueues.get(cn).addSorted(fn.get(), -1);
+                    }
                 }
             }
-        }
 
-        for(int i = 0; i < cabinStatuses.size(); i += 1){
-            Queues q = cabinqueues.get(i);
+            for (int i = 0; i < cabinStatuses.size(); i += 1) {
+                Queues q = cabinqueues.get(i);
 //            CabinStatus cs = cabinStatuses.get(i);
-            int floor = q.get();
+                int floor = q.get();
 
 //            if(floor == -1) floor = cs.getLastFloor().get();
-            nextFloors.add(i,new FloorNumber(floor));
+                nextFloors.add(i, new FloorNumber(floor));
+            }
+        }
+        else if (wasFire){
+            for(int i = 0; i < cabinStatuses.size(); i+= 1){
+                if(!managerMode.get(i)) {
+                    cabinqueues.get(i).clear();
+                    cabinqueues.get(i).clear();
+                    if (cabinStatuses.get(i).getLastFloor().get() != 1) nextFloors.add(i, new FloorNumber(1));
+                    else nextFloors.add(i, new FloorNumber(-1));
+                }
+                else{
+                    CabinStatus cs = cabinStatuses.get(i);
+                    int cn = cs.getCabinNumber().get() - 1;
+                    HashSet<FloorNumber> requests = cs.getAllActiveRequests();
+
+                    // check if already scheduled
+                    Queues q = cabinqueues.get(cn);
+
+                    for (FloorNumber fn : requests) {
+                        if (q.isIn(fn.get())) {
+                            break;
+                        }
+                        if (cs.getLastFloor().get() == fn.get()) {
+                            break;
+                        }
+
+                        System.out.println("----------");
+                        for (int j : q.up) {
+                            System.out.print(j + " ");
+                        }
+                        System.out.println();
+                        for (int j : q.down) {
+                            System.out.print(j + " ");
+                        }
+                        System.out.println();
+                        System.out.println("----------");
+
+                        if (cs.getLastFloor().get() < fn.get()) {
+                            cabinqueues.get(cn).addSorted(fn.get(), 1);
+                        } else if (cs.getLastFloor().get() > fn.get()) {
+                            cabinqueues.get(cn).addSorted(fn.get(), -1);
+                        }
+                    }
+                }
+            }
         }
         return nextFloors;
     }

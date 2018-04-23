@@ -27,10 +27,10 @@ public class BuildingControl implements LogicEntity
     private ArrayList<CabinStatus> m_Statuses = new ArrayList<>();
     private ArrayList<FloorNumber> m_NextFloors = new ArrayList<>();
     private ArrayList<Boolean> cycleChecks = new ArrayList<>(Arrays.asList(false, false, false, false));
-//    private ArrayList<Boolean> cycleChecks = new ArrayList<>(Arrays.asList(true,true,true,true));
+    private ArrayList<Boolean> managerMode = new ArrayList<>(Arrays.asList(false, false, false, false));
 
     private ArrayList<Double> timers = new ArrayList<>(Arrays.asList(0.0, 0.0, 0.0, 0.0));
-    private int numCabins = 1;
+    private int numCabins = 4;
 
     public BuildingControl(ControlPanel controlPanel)
     {
@@ -79,6 +79,7 @@ public class BuildingControl implements LogicEntity
 
                 if(!cycleChecks.get(i) && _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.CLOSED || _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.OPENING )//&& m_NextFloors.get(i).get() != -1)
                 {
+                    System.out.println("elevator " + status.getCabinNumber().get() + " doors open");
                     _doorControl.open(lastFloor, cabinNumber);
                     Pair<Double,Double> openPercentages = _doorControl.getInnerOuterDoorPercentageOpen(lastFloor, cabinNumber);
                     System.out.println(openPercentages.getKey() + " " + openPercentages.getValue());
@@ -141,11 +142,11 @@ public class BuildingControl implements LogicEntity
         if(m_ControlPanelSnapShot.currentView != ViewTypes.OVERVIEW) {
             CabinStatus inViewCabin = m_Statuses.get(m_ControlPanelSnapShot.currentView.toInt() - 1);
             HashSet<FloorNumber> requests = inViewCabin.getAllActiveRequests();
-            System.out.println(requests);
             requests.addAll(m_ControlPanelSnapShot.manualFloorsPresses);
             inViewCabin.setRequests(requests);
         }
         ArrayList<Pair<CallButtons,CallButtons>> callButtons = floorrequests.getFloorRequests();
+        // TODO: should this be something else?
         ArrayList<Pair<CallButtons,CallButtons>> managerCallButtons = floorrequests.getFloorRequests();
         Iterator<Pair<CallButtons,CallButtons>> it1 = callButtons.iterator();
         Iterator<Pair<CallButtons,CallButtons>> it2 = managerCallButtons.iterator();
@@ -157,6 +158,7 @@ public class BuildingControl implements LogicEntity
         }
         // Wipe requests for locked cabins or all cabins if a fire has occurred before sending it to the algorithm.
         ArrayList<Boolean> lockedPanels = m_ControlPanelSnapShot.lockedPanels;
+
         for(int i = 0; i < lockedPanels.size(); i++)
         {
             if(lockedPanels.get(i))
@@ -175,7 +177,11 @@ public class BuildingControl implements LogicEntity
         // Now send the data to the Elevator Algorithm.
         // The algorithm will schedule the cabins and return the current
         // destination floor of each cabin.
-        m_NextFloors = ea.schedule(m_Statuses,callButtons,alarm.isOn());
+
+        if(!alarm.isOn()) m_NextFloors = ea.schedule(m_Statuses,callButtons,alarm.isOn(), managerMode);
+        else m_NextFloors = ea.schedule(m_Statuses,managerCallButtons,alarm.isOn(), managerMode);
+
+
 
         // Now update each of the cabins destination floors
         for(int i = 0; i < cabins.size(); i++) {
@@ -185,13 +191,12 @@ public class BuildingControl implements LogicEntity
 
                     cycleChecks.set(i, false);
                 }
-
+                // alarm is on and we reached floor 1, go to manager mode
+                if(alarm.isOn() && m_Statuses.get(i).getLastFloor().get() == 1){
+                    managerMode.set(i, true);
+                }
             }
         }
-
-
-
-
     }
 
     private void m_UpdateViewCheck(ViewTypes updatedView)

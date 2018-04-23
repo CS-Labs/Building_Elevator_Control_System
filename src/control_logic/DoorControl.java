@@ -51,13 +51,11 @@ class DoorControl implements LogicEntity {
         // Initialize sensors
         _sensors = new Sensors(this);
     }
-    
 
     DoorStatusType getCurrStatus(int cabinNumber)
     {
       return _statusMap.get(cabinNumber);
     }
-
 
     @Override
     public void process(double deltaSeconds) {

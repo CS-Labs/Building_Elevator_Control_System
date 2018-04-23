@@ -32,7 +32,7 @@ public class BuildingFireAlarm
 
     //If the Alarm is off with a probability of 1/10000 turn it on.
     void fireCheck() {
-        if (!alarmOn & rand.nextInt(10000) == 0) alarmOn = true;
+        if (!alarmOn & rand.nextInt(1000000) == 0) alarmOn = true;
     }
     boolean isOn() {return alarmOn;}
     // Perform time step.

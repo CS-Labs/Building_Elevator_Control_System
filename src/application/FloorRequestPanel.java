@@ -22,9 +22,7 @@ public class FloorRequestPanel extends GridPane
         this.setWidth(200);
         GridPane requestPanel = m_CreateFloorRequestPanel();
         this.add(requestPanel,1,2);
-
     }
-
 
     private GridPane m_CreateFloorRequestPanel()
     {
