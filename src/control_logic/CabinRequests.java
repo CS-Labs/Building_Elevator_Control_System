@@ -9,7 +9,7 @@ class CabinRequests
 {
     private HashSet<FloorNumber> requests = new HashSet<>();
     // need to change these
-    private static final double probability = .00025;
+    private static final double probability = .00005;
 //    private static final double probability = .000;
 
     public HashSet<FloorNumber> getRequests() {

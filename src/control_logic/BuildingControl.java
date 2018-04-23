@@ -47,10 +47,7 @@ public class BuildingControl implements LogicEntity
         alarm = new BuildingFireAlarm();
         m_RenderEntityManager = new RenderEntityManager();
         m_RenderEntityManager.switchToSystemOverview();
-
     }
-    
-
 
     @Override
     public void process(double deltaSeconds)
@@ -106,11 +103,8 @@ public class BuildingControl implements LogicEntity
                     cabins.get(i).removeRequest(lastFloor); // VERY IMPORTANT.
                     ea.pop(status);
                 }
-
-
             }
         }
-
 
         // If the user is viewing the inside of one of the cabins then render the cabin.
         if(currentView != ViewTypes.OVERVIEW)
@@ -147,9 +141,10 @@ public class BuildingControl implements LogicEntity
         }
         ArrayList<Pair<CallButtons,CallButtons>> callButtons = floorrequests.getFloorRequests();
         // TODO: should this be something else?
-        ArrayList<Pair<CallButtons,CallButtons>> managerCallButtons = floorrequests.getFloorRequests();
+        ArrayList<Pair<CallButtons,CallButtons>> managerCallButtons = m_ControlPanelSnapShot.upDownEvents;
         Iterator<Pair<CallButtons,CallButtons>> it1 = callButtons.iterator();
         Iterator<Pair<CallButtons,CallButtons>> it2 = managerCallButtons.iterator();
+
         while(it1.hasNext() && it2.hasNext()) {
             Pair<CallButtons, CallButtons> buttons = it1.next();
             Pair<CallButtons,CallButtons> managerButtons = it2.next();
