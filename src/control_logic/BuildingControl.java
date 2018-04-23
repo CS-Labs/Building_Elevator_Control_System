@@ -50,10 +50,7 @@ public class BuildingControl implements LogicEntity
         alarm = new BuildingFireAlarm();
         m_RenderEntityManager = new RenderEntityManager();
         m_RenderEntityManager.switchToSystemOverview();
-
     }
-    
-
 
     @Override
     public void process(double deltaSeconds)
@@ -80,6 +77,10 @@ public class BuildingControl implements LogicEntity
                 Pair<Double, Double> closedPercentages = _doorControl.getInnerOuterDoorPercentageOpen(lastFloor, cabinNumber);
                 //System.out.println(closedPercentages.getKey() + " " + closedPercentages.getValue());
                 m_RenderEntityManager.updateDoorLocs(closedPercentages.getKey(), closedPercentages.getValue());
+            }
+            // Check for interference
+            if (currentView != ViewTypes.OVERVIEW && _doorControl.interferenceDetected()) {
+                _doorControl.open(lastFloor, cabinNumber);
             }
             // If the cabin has arrived at it's destination notify of arrival.
             if(status.getLastFloor().equals(status.getDestination()) && status.getMotionStatus() == MotionStatusTypes.STOPPED
@@ -214,9 +215,10 @@ public class BuildingControl implements LogicEntity
         }
         ArrayList<Pair<CallButtons,CallButtons>> callButtons = floorrequests.getFloorRequests();
         // TODO: should this be something else?
-        ArrayList<Pair<CallButtons,CallButtons>> managerCallButtons = floorrequests.getFloorRequests();
+        ArrayList<Pair<CallButtons,CallButtons>> managerCallButtons = m_ControlPanelSnapShot.upDownEvents;
         Iterator<Pair<CallButtons,CallButtons>> it1 = callButtons.iterator();
         Iterator<Pair<CallButtons,CallButtons>> it2 = managerCallButtons.iterator();
+
         while(it1.hasNext() && it2.hasNext()) {
             Pair<CallButtons, CallButtons> buttons = it1.next();
             Pair<CallButtons,CallButtons> managerButtons = it2.next();

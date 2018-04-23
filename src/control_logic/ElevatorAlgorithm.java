@@ -117,6 +117,7 @@ public class ElevatorAlgorithm
                     int best_score = -1;
 
                     // check if already scheduled or already on this floor
+                    // TODO this needs to check direction
                     for (Queues q : cabinqueues) {
                         if (q.isIn(b.getFloor().get())) break_ = true;
                         for (CabinStatus cs : cabinStatuses) {
