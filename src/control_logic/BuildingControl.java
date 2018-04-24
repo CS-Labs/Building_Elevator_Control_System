@@ -77,12 +77,13 @@ public class BuildingControl implements LogicEntity
         if(keyLocked && !(currentView == ViewTypes.OVERVIEW))
         {
           managerMode.set(currentView.toInt() - 1, true);
-          initManager.set(currentView.toInt() - 1, true);
+          if(!managerInit.get(currentView.toInt()-1))initManager.set(currentView.toInt() - 1, true);
           managerInit.set(currentView.toInt() - 1, true);
         }
         else if(!keyLocked && !(currentView == ViewTypes.OVERVIEW))
         {
           managerMode.set(currentView.toInt() - 1, false);
+          managerInit.set(currentView.toInt() - 1, false);
         }
         // Get the latest cabin snap shots.
         for(int i = 0; i < cabins.size(); i++){
