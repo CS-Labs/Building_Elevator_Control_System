@@ -54,7 +54,9 @@ class DoorControl implements LogicEntity {
 
     DoorStatusType getCurrStatus(int cabinNumber)
     {
-      return _statusMap.get(cabinNumber);
+        synchronized (this) {
+            return _statusMap.get(cabinNumber);
+        }
     }
 
     @Override
@@ -123,8 +125,14 @@ class DoorControl implements LogicEntity {
     }
 
     public boolean manualInterferenceDetected() {
-        return _sensors.manualInterferenceDetected();
+        synchronized(this) {
+            return _sensors.manualInterferenceDetected();
+        }
     }
 
-    public boolean interferenceDetected() {return _sensors.checkForInterference();}
+    public boolean interferenceDetected() {
+        synchronized(this) {
+            return _sensors.checkForInterference();
+        }
+    }
 }
