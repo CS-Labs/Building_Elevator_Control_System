@@ -296,8 +296,10 @@ public class BuildingControl implements LogicEntity
         {
             if(lockedPanels.get(i))
             {
+                for(FloorNumber fr : m_Statuses.get(i).getAllActiveRequests())  m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(fr);
                 m_Statuses.get(i).setRequests(new HashSet<>());
                 cabins.get(i).clearRequests();
+                ea.clearRequests(m_Statuses.get(i));
             }
         }
         if(alarm.isOn())
