@@ -127,7 +127,7 @@ public class BuildingControl implements LogicEntity
                 m_RenderEntityManager.updateDoorLocs(closedPercentages.getKey(), closedPercentages.getValue());
                 if (_doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.CLOSING &&
                         _doorControl.manualInterferenceDetected()) {
-                    _doorControl.close(lastFloor, cabinNumber);
+                    _doorControl.open(lastFloor, cabinNumber);
                 }
             }
             // If the cabin has arrived at it's destination notify of arrival.
@@ -180,7 +180,7 @@ public class BuildingControl implements LogicEntity
                                 break;
                             case CLOSING:
                                 if (_doorControl.interferenceDetected()) {
-                                    _doorControl.close(lastFloorInternal, cabinNumberInternal);
+                                    _doorControl.open(lastFloorInternal, cabinNumberInternal);
                                 }
                                 break;
                             case CLOSED:
