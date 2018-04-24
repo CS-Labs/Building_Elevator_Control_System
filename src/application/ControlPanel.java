@@ -25,7 +25,7 @@ public class ControlPanel extends GridPane
     private boolean m_AlarmPressed = false;
     private ViewTypes m_CurrentView = ViewTypes.OVERVIEW;
     private ArrayList<Boolean> m_LockedPanels = new ArrayList<>(Arrays.asList(false, false, false, false));
-    private boolean m_KeyChange = false;
+    private boolean m_KeyLock = false;
     private SceneManager m_ElevatorViewMgr = new SceneManager(); // Only on screen when viewing inside elevators.
     private SceneManager m_SystemOverviewMgr = new SceneManager(); // Only on screen when viewing system overview.
     private ArrayList<Pair<CallButtons, CallButtons>> m_UpDownEvents = new ArrayList<>();
@@ -107,7 +107,7 @@ public class ControlPanel extends GridPane
             upDownEvents.add(i,new Pair<>(m_UpDownEvents.get(i).getKey().makeCopy(),m_UpDownEvents.get(i).getValue()));
         }
         ControlPanelSnapShot snapShot = new ControlPanelSnapShot(new HashSet<>(m_FloorsButtonsPressed),
-                m_AlarmPressed, new ArrayList<>(m_LockedPanels), m_CurrentView, m_KeyChange, upDownEvents);
+                m_AlarmPressed, new ArrayList<>(m_LockedPanels), m_CurrentView, m_KeyLock, upDownEvents);
         resetStatus();
         return snapShot;
     }
@@ -116,7 +116,6 @@ public class ControlPanel extends GridPane
     {
         m_FloorsButtonsPressed.clear();
         m_AlarmPressed = false;
-        m_KeyChange = false;
         for(Pair<CallButtons, CallButtons> buttons: m_UpDownEvents)
         {
             buttons.getKey().setButtonPressedState(false);
@@ -145,7 +144,14 @@ public class ControlPanel extends GridPane
                     m_LockedPanels = (ArrayList<Boolean>) message.getMessageData();
                     break;
                 case ControlPanelGlobals.KEY_LOCK_CHANGE:
-                    m_KeyChange = true;
+                    if(m_KeyLock)
+                    {
+                      m_KeyLock = false;
+                    }
+                    else if(!m_KeyLock)
+                    {
+                      m_KeyLock = true;
+                    }
                     break;
                 case ControlPanelGlobals.MANAGER_UP:
                     FloorNumber upFloor = (FloorNumber) message.getMessageData();

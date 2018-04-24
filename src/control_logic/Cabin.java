@@ -25,7 +25,7 @@ class Cabin
 
     // this updates requests, call this first then call status.getAllActiveRequests so that it doesnt update
     public CabinStatus getStatus() {
-        cabinstatus.setRequests(cabinrequests.getRequests());
+        if(!cabinstatus.inManagerMode())cabinstatus.setRequests(cabinrequests.getRequests());
         cabinstatus.setLastFloor(motioncontrol.getLastFloor());
         cabinstatus.setMotionStatus(motioncontrol.getMotionStatus());
         cabinstatus.setDirection(motioncontrol.getDirection());

@@ -14,6 +14,7 @@ class CabinStatus
     private FloorNumber destination;
     private FloorNumber lastFloor;
     private HashSet<FloorNumber> cabinrequests;
+    private Boolean managerMode = false;
 
     CabinStatus(CabinNumber cn) {
         this.direction = DirectionType.NONE;
@@ -29,7 +30,15 @@ class CabinStatus
     public MotionStatusTypes getMotionStatus() {return this.moving;}
     public CabinNumber getCabinNumber() {return this.cabinNumber;}
     public FloorNumber getDestination() {return this.destination;}
-    public FloorNumber getLastFloor() {return this.lastFloor;}
+    public FloorNumber getLastFloor() 
+    {
+      if(managerMode)
+      {
+        return new FloorNumber(200);
+      }
+      return this.lastFloor;
+    }
+    public FloorNumber getLastFloorManager() {return this.lastFloor;}
     public HashSet<FloorNumber> getAllActiveRequests() { return cabinrequests; }
 
     public CabinStatus getStatus() {
@@ -42,12 +51,13 @@ class CabinStatus
 //        return copy;
         return this;
     }
-    
+    public Boolean inManagerMode() {return managerMode;};
     public void setDirection(DirectionType direction){this.direction = direction;}
     public void setMotionStatus(MotionStatusTypes moving) {this.moving = moving;}
     public void setDestination(FloorNumber fn) {this.destination = fn;}
     public void setLastFloor(FloorNumber fn) {this.lastFloor = fn;}
     public void setRequests(HashSet<FloorNumber> requests){this.cabinrequests = requests;}
+    public void setManagerMode(boolean managerMode) {this.managerMode = managerMode;}
 
     // For debugging.
     @Override

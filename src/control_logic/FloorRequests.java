@@ -1,13 +1,12 @@
 package control_logic;
 
-import application.ControlPanelGlobals;
+import java.util.ArrayList;
+import java.util.Random;
+
 import javafx.util.Pair;
 import named_types.CabinNumber;
 import named_types.DirectionType;
 import named_types.FloorNumber;
-
-import java.util.ArrayList;
-import java.util.Random;
 
 public class FloorRequests{
     private ArrayList<Pair<CallButtons, CallButtons>> buttons = new ArrayList<>();

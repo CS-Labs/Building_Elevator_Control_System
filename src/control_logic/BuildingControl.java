@@ -1,15 +1,26 @@
 package control_logic;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import application.ControlPanel;
 import application.ControlPanelSnapShot;
-import application.SystemOverviewPanel;
-import engine.*;
+import engine.Callback;
+import engine.Engine;
+import engine.LogicEntity;
+import engine.Message;
+import engine.SceneManager;
+import engine.Singleton;
 import javafx.util.Pair;
-import named_types.*;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
+import named_types.ArrivalLightStates;
+import named_types.CabinNumber;
+import named_types.DirectionType;
+import named_types.DoorStatusType;
+import named_types.FloorNumber;
+import named_types.ViewTypes;
 
 public class BuildingControl implements LogicEntity
 {
@@ -28,6 +39,7 @@ public class BuildingControl implements LogicEntity
     private ArrayList<FloorNumber> m_NextFloors = new ArrayList<>();
     private ArrayList<Boolean> cycleChecks = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> managerMode = new ArrayList<>(Arrays.asList(false, false, false, false));
+    private ArrayList<Boolean> initManager = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> safeToDepart = new ArrayList<>(Arrays.asList(true, true, true, true));
     private ArrayList<Boolean> doorsOpening = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ConcurrentLinkedQueue<Callback> prepareElevatorForDepartureQueue = new ConcurrentLinkedQueue<>();
@@ -60,11 +72,45 @@ public class BuildingControl implements LogicEntity
         // Get the latest control panel snap shot.
         m_ControlPanelSnapShot = m_ControlPanel.getSnapShot();
         ViewTypes currentView = m_ControlPanelSnapShot.currentView;
+        boolean keyLocked = m_ControlPanelSnapShot.isKeyLocked;
+        if(keyLocked && !(currentView == ViewTypes.OVERVIEW))
+        {
+          managerMode.set(currentView.toInt() - 1, true);
+          initManager.set(currentView.toInt() - 1, true);
+        }
+        else if(!keyLocked && !(currentView == ViewTypes.OVERVIEW))
+        {
+          managerMode.set(currentView.toInt() - 1, false);
+        }
         // Get the latest cabin snap shots.
         for(int i = 0; i < cabins.size(); i++){
             CabinStatus status = cabins.get(i).getStatus();
+            if(initManager.get(i))
+            {
+              cabins.get(i).clearRequests();
+              status.getAllActiveRequests().clear();
+              ea.clearRequests(status);
+              for (int j = 1; j <= 10; j++) m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(new FloorNumber(j));
+              initManager.set(i, false);
+            }
+            if(managerMode.get(i))
+            {
+              status.setManagerMode(true);
+            }
+            else if(!managerMode.get(i))
+            {
+              status.setManagerMode(false);
+            }
             m_Statuses.add(status);
-            FloorNumber lastFloor = status.getLastFloor();
+            FloorNumber lastFloor = null;
+            if(!managerMode.get(i))
+            {
+              lastFloor = status.getLastFloor();
+            }
+            else if(managerMode.get(i))
+            {
+              lastFloor = status.getLastFloorManager();
+            }
             CabinNumber cabinNumber = status.getCabinNumber();
             DirectionType direction = status.getDirection();
             ArrivalLightStates light;
@@ -83,7 +129,8 @@ public class BuildingControl implements LogicEntity
                 _doorControl.open(lastFloor, cabinNumber);
             }
             // If the cabin has arrived at it's destination notify of arrival.
-            if(status.getLastFloor().equals(status.getDestination()) && status.getMotionStatus() == MotionStatusTypes.STOPPED
+            if(((!status.inManagerMode() && status.getLastFloor().equals(status.getDestination()) && status.getMotionStatus() == MotionStatusTypes.STOPPED)||
+                (status.inManagerMode() && status.getLastFloorManager().equals(status.getDestination()) && status.getMotionStatus() == MotionStatusTypes.STOPPED))
                     && !doorsOpening.get(i)){
                 floorrequests.notifyOfArrival(lastFloor, cabinNumber, direction); // Signal arrival
                 m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(lastFloor); // Turn off button light
@@ -184,7 +231,8 @@ public class BuildingControl implements LogicEntity
         if(currentView != ViewTypes.OVERVIEW)
         {
             CabinStatus visibleCabin = m_Statuses.get(currentView.toInt()-1);
-            m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloor());
+            if(!visibleCabin.inManagerMode())m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloor());
+            else if(visibleCabin.inManagerMode())m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloorManager());
             if(visibleCabin.getDestination().get() > 0) m_RenderEntityManager.destinationFloorRenderer.setFloorNumber(visibleCabin.getDestination());
             if(m_ControlPanelSnapShot.currentView != m_PreviousView) { // Prevent meaningless re-rendering.
                 for (int i = 1; i <= 10; i++) m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(new FloorNumber(i));
@@ -211,7 +259,16 @@ public class BuildingControl implements LogicEntity
             CabinStatus inViewCabin = m_Statuses.get(m_ControlPanelSnapShot.currentView.toInt() - 1);
             HashSet<FloorNumber> requests = inViewCabin.getAllActiveRequests();
             requests.addAll(m_ControlPanelSnapShot.manualFloorsPresses);
-            inViewCabin.setRequests(requests);
+            boolean inManagerMode = inViewCabin.inManagerMode();
+            //Filter manual requests.
+            if(!inManagerMode)
+            {
+              inViewCabin.setRequests(requests);
+            }
+            else if(inManagerMode)
+            {
+              inViewCabin.setRequests(filteredRequests(m_ControlPanelSnapShot.manualFloorsPresses, inViewCabin.getLastFloorManager().get()));
+            }
         }
         ArrayList<Pair<CallButtons,CallButtons>> callButtons = floorrequests.getFloorRequests();
         // TODO: should this be something else?
@@ -275,6 +332,19 @@ public class BuildingControl implements LogicEntity
                 }
             }
         }
+    }
+    
+    //Filter requests in manager mode. Can only move one floor at a time.
+    private HashSet<FloorNumber> filteredRequests(HashSet<FloorNumber> requests, int currFloor)
+    {
+      HashSet<FloorNumber> filteredReqs = new HashSet<>();
+      requests.forEach((request) -> {
+        if((request.get() == currFloor - 1) || (request.get() == currFloor + 1))
+        {
+          filteredReqs.add(request);
+        }
+      });
+      return filteredReqs;
     }
 
     private void m_UpdateViewCheck(ViewTypes updatedView)

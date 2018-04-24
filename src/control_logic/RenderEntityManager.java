@@ -105,10 +105,14 @@ class RenderEntityManager
 
     public void updateCabinLocations(ArrayList<CabinStatus> cabins)
     {
-        cabinOutsideOne.updateYLocation(cabins.get(0).getLastFloor());
-        cabinOutsideTwo.updateYLocation(cabins.get(1).getLastFloor());
-        cabinOutsideThree.updateYLocation(cabins.get(2).getLastFloor());
-        cabinOutsideFour.updateYLocation(cabins.get(3).getLastFloor());
+        if(!cabins.get(0).inManagerMode())cabinOutsideOne.updateYLocation(cabins.get(0).getLastFloor());
+        else if(cabins.get(0).inManagerMode())cabinOutsideOne.updateYLocation(cabins.get(0).getLastFloorManager());
+        if(!cabins.get(1).inManagerMode())cabinOutsideTwo.updateYLocation(cabins.get(1).getLastFloor());
+        else if(cabins.get(1).inManagerMode())cabinOutsideTwo.updateYLocation(cabins.get(1).getLastFloorManager());
+        if(!cabins.get(2).inManagerMode())cabinOutsideThree.updateYLocation(cabins.get(2).getLastFloor());
+        else if(cabins.get(2).inManagerMode())cabinOutsideThree.updateYLocation(cabins.get(2).getLastFloorManager());
+        if(!cabins.get(3).inManagerMode())cabinOutsideFour.updateYLocation(cabins.get(3).getLastFloor());
+        else if(cabins.get(3).inManagerMode())cabinOutsideFour.updateYLocation(cabins.get(3).getLastFloorManager());
     }
 
     public void updateDoorLocs(double innerPercentage, double outerPercentage)

@@ -1,13 +1,12 @@
 package control_logic;
 
-import named_types.CabinNumber;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+
+import javafx.util.Pair;
 import named_types.DirectionType;
 import named_types.FloorNumber;
-import java.util.Collections;
-import javafx.util.Pair;
-
-import java.util.ArrayList;
-import java.util.HashSet;
 
 public class ElevatorAlgorithm
 {
@@ -68,6 +67,11 @@ public class ElevatorAlgorithm
             down.clear();
         }
     }
+    
+    public void clearRequests(CabinStatus status)
+    {
+      cabinqueues.get(status.getCabinNumber().get()-1).clear();
+    }
 
     private ArrayList<Queues> cabinqueues;
     ElevatorAlgorithm(ArrayList<Cabin> cabins){
@@ -80,8 +84,17 @@ public class ElevatorAlgorithm
 
     public void pop(CabinStatus cs){
         Queues q = cabinqueues.get(cs.getCabinNumber().get()-1);
-        if(q.get() == cs.getLastFloor().get()){
+        if(!cs.inManagerMode())
+        {
+          if(q.get() == cs.getLastFloor().get()){
+              q.pop();
+          }
+        }
+        else if(cs.inManagerMode())
+        {
+          if(q.get() == cs.getLastFloorManager().get()){
             q.pop();
+          }
         }
     }
 
@@ -151,16 +164,16 @@ public class ElevatorAlgorithm
 
                 // check if already scheduled
                 Queues q = cabinqueues.get(cn);
-                System.out.println("----------");
+                //System.out.println("----------");
                 for (int i : q.up) {
-                    System.out.print(i + " ");
+                    //System.out.print(i + " ");
                 }
-                System.out.println();
+                //System.out.println();
                 for (int i : q.down) {
-                    System.out.print(i + " ");
+                    //System.out.print(i + " ");
                 }
-                System.out.println();
-                System.out.println("----------");
+                //System.out.println();
+                //System.out.println("----------");
                 for (FloorNumber fn : requests) {
                     if (q.isIn(fn.get())) {
 //                    System.out.println("in in");
@@ -213,16 +226,16 @@ public class ElevatorAlgorithm
                             break;
                         }
 
-                        System.out.println("----------");
+                        //System.out.println("----------");
                         for (int j : q.up) {
-                            System.out.print(j + " ");
+                            //System.out.print(j + " ");
                         }
                         System.out.println();
                         for (int j : q.down) {
-                            System.out.print(j + " ");
+                            //System.out.print(j + " ");
                         }
-                        System.out.println();
-                        System.out.println("----------");
+                        //System.out.println();
+                        //System.out.println("----------");
 
                         if (cs.getLastFloor().get() < fn.get()) {
                             cabinqueues.get(cn).addSorted(fn.get(), 1);
