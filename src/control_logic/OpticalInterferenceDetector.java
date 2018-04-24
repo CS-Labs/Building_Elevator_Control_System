@@ -20,11 +20,15 @@ public class OpticalInterferenceDetector
 
     OpticalInterferenceDetector() {new MouseInputHandler().enableMouseInputComponent();}
 
-    public boolean interferenceDetected() {
+    public boolean manualInterferenceDetected() {
         if(manualInterference){
             manualInterference = false;
             return true;
         }
+        return false;
+    }
+
+    public boolean interferenceDetected() {
         // Random probability random interference occurs 1/10000
         return rand.nextInt(10000) == 0;
     }

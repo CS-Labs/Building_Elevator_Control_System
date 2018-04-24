@@ -21,5 +21,9 @@ class Sensors
       return _doorPosSensor.checkDoorStatus(openPercent, isOpening);
     }
 
+    boolean manualInterferenceDetected() {
+        return _opticalDetector.manualInterferenceDetected();
+    }
+
     boolean checkForInterference() {return _opticalDetector.interferenceDetected();}
 }

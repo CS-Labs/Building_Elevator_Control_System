@@ -123,10 +123,10 @@ public class BuildingControl implements LogicEntity
                 Pair<Double, Double> closedPercentages = _doorControl.getInnerOuterDoorPercentageOpen(lastFloor, cabinNumber);
                 //System.out.println(closedPercentages.getKey() + " " + closedPercentages.getValue());
                 m_RenderEntityManager.updateDoorLocs(closedPercentages.getKey(), closedPercentages.getValue());
-            }
-            // Check for interference
-            if (currentView != ViewTypes.OVERVIEW && _doorControl.interferenceDetected()) {
-                _doorControl.open(lastFloor, cabinNumber);
+                if (_doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.CLOSING &&
+                        _doorControl.manualInterferenceDetected()) {
+                    _doorControl.close(lastFloor, cabinNumber);
+                }
             }
             // If the cabin has arrived at it's destination notify of arrival.
             if(((!status.inManagerMode() && status.getLastFloor().equals(status.getDestination()) && status.getMotionStatus() == MotionStatusTypes.STOPPED)||
@@ -175,6 +175,11 @@ public class BuildingControl implements LogicEntity
                                 // If the time is up, shut the doors
                                 if (this.elapsedSec >= this.timeToKeepDoorsOpenSec)
                                     _doorControl.close(lastFloorInternal, cabinNumberInternal);
+                                break;
+                            case CLOSING:
+                                if (_doorControl.interferenceDetected()) {
+                                    _doorControl.close(lastFloorInternal, cabinNumberInternal);
+                                }
                                 break;
                             case CLOSED:
                                 // Notify building control that it is safe to open

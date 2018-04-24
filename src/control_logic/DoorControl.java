@@ -122,5 +122,9 @@ class DoorControl implements LogicEntity {
       }
     }
 
+    public boolean manualInterferenceDetected() {
+        return _sensors.manualInterferenceDetected();
+    }
+
     public boolean interferenceDetected() {return _sensors.checkForInterference();}
 }
