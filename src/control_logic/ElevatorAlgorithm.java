@@ -130,7 +130,6 @@ public class ElevatorAlgorithm
                     int best_score = -1;
 
                     // check if already scheduled or already on this floor
-                    // TODO this needs to check direction
                     for (Queues q : cabinqueues) {
                         if (q.isIn(b.getFloor().get())) break_ = true;
                         for (CabinStatus cs : cabinStatuses) {
@@ -204,13 +203,13 @@ public class ElevatorAlgorithm
         }
         else if (wasFire){
             for(int i = 0; i < cabinStatuses.size(); i+= 1){
-                if(!managerMode.get(i)) {
+                if(!managerMode.get(i)){
                     cabinqueues.get(i).clear();
                     cabinqueues.get(i).clear();
                     if (cabinStatuses.get(i).getLastFloor().get() != 1) nextFloors.add(i, new FloorNumber(1));
                     else nextFloors.add(i, new FloorNumber(-1));
                 }
-                else{
+                else {
                     CabinStatus cs = cabinStatuses.get(i);
                     int cn = cs.getCabinNumber().get() - 1;
                     HashSet<FloorNumber> requests = cs.getAllActiveRequests();
@@ -243,6 +242,9 @@ public class ElevatorAlgorithm
                             cabinqueues.get(cn).addSorted(fn.get(), -1);
                         }
                     }
+                    int floor = q.get();
+
+                    nextFloors.add(i, new FloorNumber(floor));
                 }
             }
         }
