@@ -26,14 +26,14 @@ public class BuildingControl implements LogicEntity
     private BuildingFireAlarm alarm;
     private ArrayList<CabinStatus> m_Statuses = new ArrayList<>();
     private ArrayList<FloorNumber> m_NextFloors = new ArrayList<>();
-    private ArrayList<Boolean> cycleChecks = new ArrayList<>(Arrays.asList(false, false, false, false));
+//    private ArrayList<Boolean> cycleChecks = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> managerMode = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> safeToDepart = new ArrayList<>(Arrays.asList(true, true, true, true));
     private ArrayList<Boolean> doorsOpening = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ConcurrentLinkedQueue<Callback> prepareElevatorForDepartureQueue = new ConcurrentLinkedQueue<>();
 
     private ArrayList<Double> timers = new ArrayList<>(Arrays.asList(0.0, 0.0, 0.0, 0.0));
-    private int numCabins = 4;
+    private int numCabins = 1;
 
     public BuildingControl(ControlPanel controlPanel)
     {
@@ -214,7 +214,6 @@ public class BuildingControl implements LogicEntity
             inViewCabin.setRequests(requests);
         }
         ArrayList<Pair<CallButtons,CallButtons>> callButtons = floorrequests.getFloorRequests();
-        // TODO: should this be something else?
         ArrayList<Pair<CallButtons,CallButtons>> managerCallButtons = m_ControlPanelSnapShot.upDownEvents;
         Iterator<Pair<CallButtons,CallButtons>> it1 = callButtons.iterator();
         Iterator<Pair<CallButtons,CallButtons>> it2 = managerCallButtons.iterator();

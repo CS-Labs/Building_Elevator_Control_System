@@ -106,9 +106,9 @@ class RenderEntityManager
     public void updateCabinLocations(ArrayList<CabinStatus> cabins)
     {
         cabinOutsideOne.updateYLocation(cabins.get(0).getLastFloor());
-        cabinOutsideTwo.updateYLocation(cabins.get(1).getLastFloor());
-        cabinOutsideThree.updateYLocation(cabins.get(2).getLastFloor());
-        cabinOutsideFour.updateYLocation(cabins.get(3).getLastFloor());
+//        cabinOutsideTwo.updateYLocation(cabins.get(1).getLastFloor());
+//        cabinOutsideThree.updateYLocation(cabins.get(2).getLastFloor());
+//        cabinOutsideFour.updateYLocation(cabins.get(3).getLastFloor());
     }
 
     public void updateDoorLocs(double innerPercentage, double outerPercentage)
