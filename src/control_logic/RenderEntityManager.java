@@ -1,15 +1,20 @@
 package control_logic;
 
 
-import engine.RenderEntity;
-import engine.SceneManager;
-import named_types.*;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
+
+import engine.RenderEntity;
+import engine.SceneManager;
+import named_types.ArrivalLightStates;
+import named_types.ArrowButtonStates;
+import named_types.CabinNumber;
+import named_types.DirectionType;
+import named_types.DoorSideTypes;
+import named_types.FloorNumber;
+import named_types.Orientation;
 
 class RenderEntityManager
 {
@@ -105,7 +110,6 @@ class RenderEntityManager
 
     public void updateCabinLocations(ArrayList<CabinStatus> cabins)
     {
-<<<<<<< HEAD
         if(!cabins.get(0).inManagerMode())cabinOutsideOne.updateYLocation(cabins.get(0).getLastFloor());
         else if(cabins.get(0).inManagerMode())cabinOutsideOne.updateYLocation(cabins.get(0).getLastFloorManager());
         if(!cabins.get(1).inManagerMode())cabinOutsideTwo.updateYLocation(cabins.get(1).getLastFloor());
@@ -114,12 +118,6 @@ class RenderEntityManager
         else if(cabins.get(2).inManagerMode())cabinOutsideThree.updateYLocation(cabins.get(2).getLastFloorManager());
         if(!cabins.get(3).inManagerMode())cabinOutsideFour.updateYLocation(cabins.get(3).getLastFloor());
         else if(cabins.get(3).inManagerMode())cabinOutsideFour.updateYLocation(cabins.get(3).getLastFloorManager());
-=======
-        cabinOutsideOne.updateYLocation(cabins.get(0).getLastFloor());
-//        cabinOutsideTwo.updateYLocation(cabins.get(1).getLastFloor());
-//        cabinOutsideThree.updateYLocation(cabins.get(2).getLastFloor());
-//        cabinOutsideFour.updateYLocation(cabins.get(3).getLastFloor());
->>>>>>> a28fefe9fa7af7d002f76d60b5dfe35cfc5b659e
     }
 
     public void updateDoorLocs(double innerPercentage, double outerPercentage)

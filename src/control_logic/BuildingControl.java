@@ -40,13 +40,14 @@ public class BuildingControl implements LogicEntity
 //    private ArrayList<Boolean> cycleChecks = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> managerMode = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> initManager = new ArrayList<>(Arrays.asList(false, false, false, false));
+    private ArrayList<Boolean> managerInit = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> safeToDepart = new ArrayList<>(Arrays.asList(true, true, true, true));
     private ArrayList<Boolean> doorsOpening = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ConcurrentLinkedQueue<Callback> prepareElevatorForDepartureQueue = new ConcurrentLinkedQueue<>();
 
     private ArrayList<Double> timers = new ArrayList<>(Arrays.asList(0.0, 0.0, 0.0, 0.0));
-    private int numCabins = 1;
-
+    private int numCabins = 4;
+    
     public BuildingControl(ControlPanel controlPanel)
     {
         // add cabins
@@ -77,6 +78,7 @@ public class BuildingControl implements LogicEntity
         {
           managerMode.set(currentView.toInt() - 1, true);
           initManager.set(currentView.toInt() - 1, true);
+          managerInit.set(currentView.toInt() - 1, true);
         }
         else if(!keyLocked && !(currentView == ViewTypes.OVERVIEW))
         {
