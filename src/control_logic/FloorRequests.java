@@ -68,6 +68,12 @@ public class FloorRequests{
         }
     }
 
+    public void turnOnCallButton(FloorNumber fn, DirectionType direction)
+    {
+        Pair<CallButtons, CallButtons> floorButtons = buttons.get(fn.get()-1);
+        if(direction == DirectionType.UP) floorButtons.getKey().setButtonPressedState(true);
+        if(direction == DirectionType.DOWN) floorButtons.getValue().setButtonPressedState(true);
+    }
 
     public ArrayList<Pair<CallButtons,CallButtons>> getFloorRequests(){
         ArrayList<Pair<CallButtons,CallButtons>> updatedRequests = new ArrayList<>();

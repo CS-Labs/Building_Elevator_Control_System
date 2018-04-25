@@ -104,11 +104,12 @@ public class ControlPanel extends GridPane
     {
         ArrayList<Pair<CallButtons,CallButtons>> upDownEvents = new ArrayList<>(m_UpDownEvents);
         for(int i = 0; i < 10; i += 1){
-            upDownEvents.add(i,new Pair<>(m_UpDownEvents.get(i).getKey().makeCopy(),m_UpDownEvents.get(i).getValue()));
+            upDownEvents.add(i,new Pair<>(m_UpDownEvents.get(i).getKey().makeCopy(),m_UpDownEvents.get(i).getValue().makeCopy()));
         }
         ControlPanelSnapShot snapShot = new ControlPanelSnapShot(new HashSet<>(m_FloorsButtonsPressed),
                 m_AlarmPressed, new ArrayList<>(m_LockedPanels), m_CurrentView, m_KeyLock, upDownEvents);
         resetStatus();
+
         return snapShot;
     }
 
@@ -155,11 +156,11 @@ public class ControlPanel extends GridPane
                     break;
                 case ControlPanelGlobals.MANAGER_UP:
                     FloorNumber upFloor = (FloorNumber) message.getMessageData();
-                    m_UpDownEvents.get(upFloor.get()).getKey().setButtonPressedState(true);
+                    m_UpDownEvents.get(upFloor.get()-1).getKey().setButtonPressedState(true);
                     break;
                 case ControlPanelGlobals.MANAGER_DOWN:
                     FloorNumber downFloor = (FloorNumber) message.getMessageData();
-                    m_UpDownEvents.get(downFloor.get()).getValue().setButtonPressedState(true);
+                    m_UpDownEvents.get(downFloor.get()-1).getValue().setButtonPressedState(true);
                     break;
                 default:
                     throw new IllegalArgumentException("Unhandled Message Received.");

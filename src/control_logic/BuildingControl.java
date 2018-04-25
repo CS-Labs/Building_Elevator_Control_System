@@ -1,27 +1,17 @@
 package control_logic;
 
+import application.ControlPanel;
+import application.ControlPanelSnapShot;
+import engine.*;
+import javafx.util.Pair;
+import named_types.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import application.ControlPanel;
-import application.ControlPanelSnapShot;
-import engine.Callback;
-import engine.Engine;
-import engine.LogicEntity;
-import engine.Message;
-import engine.SceneManager;
-import engine.Singleton;
-import javafx.util.Pair;
-import named_types.ArrivalLightStates;
-import named_types.CabinNumber;
-import named_types.DirectionType;
-import named_types.DoorStatusType;
-import named_types.FloorNumber;
-import named_types.ViewTypes;
 
 public class BuildingControl implements LogicEntity
 {
@@ -161,7 +151,6 @@ public class BuildingControl implements LogicEntity
             if (currentView == ViewTypes.values()[i]) {
                 m_RenderEntityManager.arrivalLightRenderer.setArrivalLightState(light);
                 Pair<Double, Double> closedPercentages = _doorControl.getInnerOuterDoorPercentageOpen(lastFloor, cabinNumber);
-                //System.out.println(closedPercentages.getKey() + " " + closedPercentages.getValue());
                 m_RenderEntityManager.updateDoorLocs(closedPercentages.getKey(), closedPercentages.getValue());
                 if (_doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.CLOSING &&
                         _doorControl.manualInterferenceDetected()) {
@@ -237,38 +226,6 @@ public class BuildingControl implements LogicEntity
                         }
                     }
                 };
-
-                /** OLD STUFF -> uncomment and it should work as before
-                if(!cycleChecks.get(i) && _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.CLOSED || _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.OPENING )//&& m_NextFloors.get(i).get() != -1)
-                {
-                    System.out.println("elevator " + status.getCabinNumber().get() + " doors open");
-                    _doorControl.open(lastFloor, cabinNumber);
-                    Pair<Double,Double> openPercentages = _doorControl.getInnerOuterDoorPercentageOpen(lastFloor, cabinNumber);
-                    System.out.println(openPercentages.getKey() + " " + openPercentages.getValue());
-                    m_RenderEntityManager.updateDoorLocs(openPercentages.getKey(), openPercentages.getValue());
-                }
-                if(_doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.OPENED) timers.set(i, timers.get(i) + 0.15);
-                if(timers.get(i) > 100 && _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.OPENED || _doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.CLOSING)
-                {
-                    _doorControl.close(lastFloor, cabinNumber);
-                    Pair<Double,Double> closedPercentages = _doorControl.getInnerOuterDoorPercentageOpen(lastFloor, cabinNumber);
-                    System.out.println(closedPercentages.getKey() + " " + closedPercentages.getValue());
-                    m_RenderEntityManager.updateDoorLocs(closedPercentages.getKey(), closedPercentages.getValue());
-                    if(currentView != ViewTypes.OVERVIEW && _doorControl.interferenceDetected())
-                    {
-                        timers.set(i,0.0);
-                        _doorControl.open(lastFloor, cabinNumber);
-                    }
-                    if(closedPercentages.getKey() < 0.1) cycleChecks.set(i,true);
-                }
-                if(_doorControl.getStatus(lastFloor, cabinNumber) == DoorStatusType.CLOSED && m_NextFloors.get(i).get() != -1)
-                {
-                    timers.set(i,0.0);
-                    m_RenderEntityManager.arrivalLightRenderer.setArrivalLightState(ArrivalLightStates.NO_ARRIVAL);
-                    cabins.get(i).removeRequest(lastFloor); // VERY IMPORTANT.
-                    ea.pop(status);
-                }
-                 */
             }
         }
 
@@ -324,9 +281,14 @@ public class BuildingControl implements LogicEntity
         while(it1.hasNext() && it2.hasNext()) {
             Pair<CallButtons, CallButtons> buttons = it1.next();
             Pair<CallButtons,CallButtons> managerButtons = it2.next();
+            FloorNumber fn = buttons.getKey().getFloor();
             buttons.getKey().setButtonPressedState(buttons.getKey().isPressed() || managerButtons.getKey().isPressed());
             buttons.getValue().setButtonPressedState(buttons.getValue().isPressed() || managerButtons.getValue().isPressed());
+            if(managerButtons.getKey().isPressed()) floorrequests.turnOnCallButton(fn, DirectionType.UP);
+            if(managerButtons.getValue().isPressed()) floorrequests.turnOnCallButton(fn, DirectionType.DOWN);
+
         }
+        for(Pair<CallButtons, CallButtons> buttons : callButtons) m_RenderEntityManager.updateFloorUpDownPanel(buttons);
         // Wipe requests for locked cabins or all cabins if a fire has occurred before sending it to the algorithm.
         ArrayList<Boolean> lockedPanels = m_ControlPanelSnapShot.lockedPanels;
 
