@@ -1,17 +1,27 @@
 package control_logic;
 
-import application.ControlPanel;
-import application.ControlPanelSnapShot;
-import engine.*;
-import javafx.util.Pair;
-import named_types.*;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import application.ControlPanel;
+import application.ControlPanelSnapShot;
+import engine.Callback;
+import engine.Engine;
+import engine.LogicEntity;
+import engine.Message;
+import engine.SceneManager;
+import engine.Singleton;
+import javafx.util.Pair;
+import named_types.ArrivalLightStates;
+import named_types.CabinNumber;
+import named_types.DirectionType;
+import named_types.DoorStatusType;
+import named_types.FloorNumber;
+import named_types.ViewTypes;
 
 public class BuildingControl implements LogicEntity
 {
@@ -32,7 +42,6 @@ public class BuildingControl implements LogicEntity
     private ArrayList<Boolean> managerMode = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> initManager = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> managerInit = new ArrayList<>(Arrays.asList(false, false, false, false));
-    private ArrayList<Boolean> managerAlarm = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> initAlarm = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> exitManager = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> safeToDepart = new ArrayList<>(Arrays.asList(true, true, true, true));
@@ -91,29 +100,16 @@ public class BuildingControl implements LogicEntity
         for(int i = 0; i < cabins.size(); i++){
             CabinStatus status = cabins.get(i).getStatus();
             if(alarm.isOn() && !alarmInit.get())
-            {
-              status.setRequests(new HashSet<>());
-              cabins.get(i).clearRequests();
-              
+            { 
               if(i == 3)
               {
                 alarmInit.set(true);
               }
-              //ea.clearRequests(status);
               for (int j = 1; j <= 10; j++) m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(new FloorNumber(j));
             }
             else if(!alarm.isOn())
             {
               alarmInit.set(false);
-            }
-            if(alarm.isOn())
-            {
-              initAlarm.set(i, true);
-              managerAlarm.set(i, true);
-            }
-            else if(!alarm.isOn())
-            {
-              managerAlarm.set(i, false);
             }
             if(initManager.get(i))
             {
@@ -123,7 +119,7 @@ public class BuildingControl implements LogicEntity
               for (int j = 1; j <= 10; j++) m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(new FloorNumber(j));
               initManager.set(i, false);
             }
-            if(managerMode.get(i) || managerAlarm.get(i))
+            if(managerMode.get(i))
             {
               status.setManagerMode(true);
             }
@@ -304,8 +300,8 @@ public class BuildingControl implements LogicEntity
         }
         if(alarm.isOn())
         {
-//            for(CabinStatus cs : m_Statuses) cs.setRequests(new HashSet<>());
-//            for(Cabin cabin : cabins) cabin.clearRequests();
+            for(CabinStatus cs : m_Statuses) cs.setRequests(new HashSet<>());
+            for(Cabin cabin : cabins) cabin.clearRequests();
             callButtons.clear();
             floorrequests.clearFloorRequests();
         }
@@ -319,7 +315,7 @@ public class BuildingControl implements LogicEntity
         }
 
         if(!alarm.isOn()) m_NextFloors = ea.schedule(m_Statuses,callButtons,alarm.isOn(), managerMode);
-        else m_NextFloors = ea.schedule(m_Statuses,managerCallButtons,alarm.isOn(), managerAlarm);
+        else m_NextFloors = ea.schedule(m_Statuses,managerCallButtons,alarm.isOn(), managerMode);
 
         // Now update each of the cabins destination floors
         for(int i = 0; i < cabins.size(); i++) {
@@ -336,9 +332,9 @@ public class BuildingControl implements LogicEntity
                     //cycleChecks.set(i, false);
                 }
                 // alarm is on and we reached floor 1, go to manager mode
-//                if(alarm.isOn() && m_Statuses.get(i).getLastFloor().get() == 1){
-//                    managerMode.set(i, true);
-//                }
+                if(alarm.isOn() && m_Statuses.get(i).getLastFloor().get() == 1){
+                    managerMode.set(i, true);
+                }
             }
         }
     }
