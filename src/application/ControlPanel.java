@@ -155,11 +155,11 @@ public class ControlPanel extends GridPane
                     break;
                 case ControlPanelGlobals.MANAGER_UP:
                     FloorNumber upFloor = (FloorNumber) message.getMessageData();
-                    m_UpDownEvents.get(upFloor.get()).getKey().setButtonPressedState(true);
+                    m_UpDownEvents.get(upFloor.get()-1).getKey().setButtonPressedState(true);
                     break;
                 case ControlPanelGlobals.MANAGER_DOWN:
                     FloorNumber downFloor = (FloorNumber) message.getMessageData();
-                    m_UpDownEvents.get(downFloor.get()).getValue().setButtonPressedState(true);
+                    m_UpDownEvents.get(downFloor.get()-1).getValue().setButtonPressedState(true);
                     break;
                 default:
                     throw new IllegalArgumentException("Unhandled Message Received.");
