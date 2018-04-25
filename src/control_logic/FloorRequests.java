@@ -86,7 +86,6 @@ public class FloorRequests{
             if(downButton.getFloor().get() != 1 && r.nextDouble() < probability) downButton.setButtonPressedState(true);
             updatedRequests.add(new Pair<>(upButton.makeCopy(), downButton.makeCopy()));
         }
-        System.out.println(".." + updatedRequests.get(9).getValue().isPressed());
         return updatedRequests;
     }
 

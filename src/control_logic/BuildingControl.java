@@ -1,27 +1,16 @@
 package control_logic;
 
-import java.lang.reflect.Array;
+import application.ControlPanel;
+import application.ControlPanelSnapShot;
+import engine.*;
+import javafx.util.Pair;
+import named_types.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import application.ControlPanel;
-import application.ControlPanelSnapShot;
-import engine.Callback;
-import engine.Engine;
-import engine.LogicEntity;
-import engine.Message;
-import engine.SceneManager;
-import engine.Singleton;
-import javafx.util.Pair;
-import named_types.ArrivalLightStates;
-import named_types.CabinNumber;
-import named_types.DirectionType;
-import named_types.DoorStatusType;
-import named_types.FloorNumber;
-import named_types.ViewTypes;
 
 public class BuildingControl implements LogicEntity
 {
