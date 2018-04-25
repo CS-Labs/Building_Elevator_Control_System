@@ -68,6 +68,12 @@ public class FloorRequests{
         }
     }
 
+    public void turnOnCallButton(FloorNumber fn, DirectionType direction)
+    {
+        Pair<CallButtons, CallButtons> floorButtons = buttons.get(fn.get()-1);
+        if(direction == DirectionType.UP) floorButtons.getKey().setButtonPressedState(true);
+        if(direction == DirectionType.DOWN) floorButtons.getValue().setButtonPressedState(true);
+    }
 
     public ArrayList<Pair<CallButtons,CallButtons>> getFloorRequests(){
         ArrayList<Pair<CallButtons,CallButtons>> updatedRequests = new ArrayList<>();
@@ -80,6 +86,7 @@ public class FloorRequests{
             if(downButton.getFloor().get() != 1 && r.nextDouble() < probability) downButton.setButtonPressedState(true);
             updatedRequests.add(new Pair<>(upButton.makeCopy(), downButton.makeCopy()));
         }
+        System.out.println(".." + updatedRequests.get(9).getValue().isPressed());
         return updatedRequests;
     }
 

@@ -1,13 +1,11 @@
 package control_logic;
 
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.*;
 
 import engine.RenderEntity;
 import engine.SceneManager;
+import javafx.util.Pair;
 import named_types.ArrivalLightStates;
 import named_types.ArrowButtonStates;
 import named_types.CabinNumber;
@@ -99,6 +97,7 @@ class RenderEntityManager
         cabinOutsideThree = new OutsideCabinRenderer(710,365,3,40,35);
         cabinOutsideFour = new OutsideCabinRenderer(855,365,3,40,35);
         for(int i = 0; i < 10; i++) m_ArrowButtonRenderers.add(new ArrowButtonRenderer(ArrowButtonStates.NOTHING_PRESSED, 950, i*40, 3, 32,38));
+        Collections.reverse(m_ArrowButtonRenderers);
         for(ArrowButtonRenderer abRenderer : m_ArrowButtonRenderers) m_SystemOverviewMgr.add(abRenderer);
         m_SystemOverviewMgr.add(new BuildingBackgroundRenderer(0,0,4,1000,400));
         m_SystemOverviewMgr.add(cabinOutsideOne);
@@ -128,10 +127,15 @@ class RenderEntityManager
         outsideDoorRight.update(outerPercentage);
     }
 
-    public void updateFloorUpDownPanel(FloorNumber floor, DirectionType direction)
+    public void updateFloorUpDownPanel(Pair<CallButtons, CallButtons> upDownButtons)
     {
-        ArrivalLightStates newLightState;
-        //TODO Finish implementing me. Discovered issue; call buttons do not support having both up and down request
+        FloorNumber floor = upDownButtons.getKey().getFloor();
+        ArrowButtonStates newButtonState;
+        if(upDownButtons.getKey().isPressed() && upDownButtons.getValue().isPressed()) newButtonState = ArrowButtonStates.UP_AND_DOWN_PRESSED;
+        else if(upDownButtons.getKey().isPressed()) newButtonState = ArrowButtonStates.UP_PRESSED;
+        else if(upDownButtons.getValue().isPressed()) newButtonState = ArrowButtonStates.DOWN_PRESSED;
+        else newButtonState = ArrowButtonStates.NOTHING_PRESSED;
+        m_ArrowButtonRenderers.get(floor.get()-1).setArrowButtonState(newButtonState);
     }
 
     /*
@@ -347,6 +351,7 @@ class RenderEntityManager
         }
 
         public void setArrowButtonState(ArrowButtonStates arrowButtonState) {m_CurrentArrowButton = arrowButtonState;}
+
 
         @Override
         public void pulse(double deltaSeconds) {setTexture("resources/img/CCTV_Views/elevator/cabin/directionLights/" + m_CurrentArrowButton.toString());}
