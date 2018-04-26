@@ -176,7 +176,7 @@ public class BuildingControl implements LogicEntity
                 };
                 // Dispatch the door open/close logic
                 new LogicEntity() {
-                    volatile double timeToKeepDoorsOpenSec = 10;
+                    volatile double timeToKeepDoorsOpenSec = 5;
                     volatile double elapsedSec = 0.0;
                     volatile boolean keepUpdating = true;
 
@@ -311,6 +311,11 @@ public class BuildingControl implements LogicEntity
         {
             for(CabinStatus cs : m_Statuses) cs.setRequests(new HashSet<>());
             for(Cabin cabin : cabins) cabin.clearRequests();
+            // Clear maintenance/exit modes
+            for (int i = 0; i < cabins.size(); ++i) {
+                managerMode.set(i, false);
+                exitManager.set(i, false);
+            }
             callButtons.clear();
             floorrequests.clearFloorRequests();
         }
