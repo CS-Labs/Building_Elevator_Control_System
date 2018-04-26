@@ -28,7 +28,9 @@ public class ControlPanel extends GridPane
     private boolean m_KeyLock = false;
     private SceneManager m_ElevatorViewMgr = new SceneManager(); // Only on screen when viewing inside elevators.
     private SceneManager m_SystemOverviewMgr = new SceneManager(); // Only on screen when viewing system overview.
+    private ArrayList<Boolean> m_Locked = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Pair<CallButtons, CallButtons>> m_UpDownEvents = new ArrayList<>();
+    private ElevatorPanel m_ElevatorPanel;
     ControlPanel()
     {
         m_UpDownEvents.add(new Pair<>(new CallButtons(ControlLogicGlobals.MINFLOOR, DirectionType.UP), new CallButtons(ControlLogicGlobals.MINFLOOR, DirectionType.DOWN)));
@@ -40,7 +42,8 @@ public class ControlPanel extends GridPane
         GridPane constantPanel = m_SetupConstantPanel();
        // m_SystemOverviewMgr.add(new OverviewPanel(0,0));
         m_SystemOverviewMgr.add(new FloorRequestPanel(400,0));
-        m_ElevatorViewMgr.add(new ElevatorPanel(400,0));
+        m_ElevatorPanel = new ElevatorPanel(400,0);
+        m_ElevatorViewMgr.add(m_ElevatorPanel);
         // Note, the bottom panel never changes so we don't need to add it to a scene manager.
         Engine.getMessagePump().sendMessage(new Message(Singleton.ADD_UI_ELEMENT, constantPanel));
         m_SystemOverviewMgr.activateAll();
@@ -107,7 +110,7 @@ public class ControlPanel extends GridPane
             upDownEvents.add(i,new Pair<>(m_UpDownEvents.get(i).getKey().makeCopy(),m_UpDownEvents.get(i).getValue().makeCopy()));
         }
         ControlPanelSnapShot snapShot = new ControlPanelSnapShot(new HashSet<>(m_FloorsButtonsPressed),
-                m_AlarmPressed, new ArrayList<>(m_LockedPanels), m_CurrentView, m_KeyLock, upDownEvents);
+                m_AlarmPressed, new ArrayList<>(m_LockedPanels), m_CurrentView, new ArrayList<>(m_Locked), upDownEvents);
         resetStatus();
 
         return snapShot;
@@ -140,19 +143,17 @@ public class ControlPanel extends GridPane
                     break;
                 case ControlPanelGlobals.CHANGE_VIEW:
                     m_CurrentView = (ViewTypes) message.getMessageData();
+                    if(m_CurrentView != ViewTypes.OVERVIEW) {
+                        if (m_Locked.get(m_CurrentView.toInt() - 1)) m_ElevatorPanel.getKey().turnOn();
+                        else m_ElevatorPanel.getKey().turnOff();
+                    }
                     break;
                 case ControlPanelGlobals.LOCK_PANEL_UPDATE:
                     m_LockedPanels = (ArrayList<Boolean>) message.getMessageData();
                     break;
                 case ControlPanelGlobals.KEY_LOCK_CHANGE:
-                    if(m_KeyLock)
-                    {
-                      m_KeyLock = false;
-                    }
-                    else if(!m_KeyLock)
-                    {
-                      m_KeyLock = true;
-                    }
+                    boolean prevState = m_Locked.get(m_CurrentView.toInt() - 1);
+                    m_Locked.set(m_CurrentView.toInt()-1, !prevState);
                     break;
                 case ControlPanelGlobals.MANAGER_UP:
                     FloorNumber upFloor = (FloorNumber) message.getMessageData();

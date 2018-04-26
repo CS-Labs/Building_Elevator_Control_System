@@ -8,7 +8,6 @@ class Key extends ElevatorButton
     boolean off = true;
     Key()
     {
-        //TODO: Create an on/off graphics so the user can tell when the key is being used. Right now on/off is the same graphic.
        String offGraphic = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/keyhole.png";
        String onGraphic = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/keyhole_on.png";
         super.setGraphic(onGraphic, offGraphic);
@@ -26,6 +25,19 @@ class Key extends ElevatorButton
             Engine.getMessagePump().sendMessage(new Message(ControlPanelGlobals.KEY_LOCK_CHANGE));
           }
         });
+    }
+    public void turnOff()
+    {
+        System.out.println("Turning off");
+        off = true;
+        this.setGraphic(offImg);
+    }
+
+    public void turnOn()
+    {
+        System.out.println("Turning on");
+        off = false;
+        this.setGraphic(onImg);
     }
 
 }

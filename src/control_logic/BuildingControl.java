@@ -38,8 +38,6 @@ public class BuildingControl implements LogicEntity
     private BuildingFireAlarm alarm;
     private ArrayList<CabinStatus> m_Statuses = new ArrayList<>();
     private ArrayList<FloorNumber> m_NextFloors = new ArrayList<>();
-    private ArrayList<HashSet<FloorNumber>> m_PreviousFloorRequests = new ArrayList<>(Arrays.asList(new HashSet<>(),
-            new HashSet<>(), new HashSet<>(), new HashSet<>()));
     private ArrayList<Boolean> managerMode = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> initManager = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> managerInit = new ArrayList<>(Arrays.asList(false, false, false, false));
@@ -79,7 +77,8 @@ public class BuildingControl implements LogicEntity
         // Get the latest control panel snap shot.
         m_ControlPanelSnapShot = m_ControlPanel.getSnapShot();
         ViewTypes currentView = m_ControlPanelSnapShot.currentView;
-        boolean keyLocked = m_ControlPanelSnapShot.isKeyLocked;
+        System.out.println(m_ControlPanelSnapShot.keyList);
+        boolean keyLocked = false;
         if(keyLocked && !(currentView == ViewTypes.OVERVIEW))
         {
           managerMode.set(currentView.toInt() - 1, true);
@@ -226,15 +225,6 @@ public class BuildingControl implements LogicEntity
             }
         }
 
-        // If the user is viewing the inside of one of the cabins then render the cabin.
-        if(currentView != ViewTypes.OVERVIEW)
-        {
-            CabinStatus visibleCabin = m_Statuses.get(currentView.toInt()-1);
-            if(!visibleCabin.inManagerMode())m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloor());
-            else if(visibleCabin.inManagerMode())m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloorManager());
-            if(visibleCabin.getDestination().get() > 0) m_RenderEntityManager.destinationFloorRenderer.setFloorNumber(visibleCabin.getDestination());
-            m_RenderEntityManager.buttonPanelRenderer.updateElevatorButtons(visibleCabin.getAllActiveRequests());
-        }
 
 
         // First check if a random fire has taken place.
@@ -275,6 +265,19 @@ public class BuildingControl implements LogicEntity
               });
             }
         }
+
+
+        // If the user is viewing the inside of one of the cabins then render the cabin.
+        if(currentView != ViewTypes.OVERVIEW)
+        {
+            CabinStatus visibleCabin = m_Statuses.get(currentView.toInt()-1);
+            System.out.println(visibleCabin.getAllActiveRequests());
+            if(!visibleCabin.inManagerMode())m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloor());
+            else if(visibleCabin.inManagerMode())m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloorManager());
+            if(visibleCabin.getDestination().get() > 0) m_RenderEntityManager.destinationFloorRenderer.setFloorNumber(visibleCabin.getDestination());
+            m_RenderEntityManager.buttonPanelRenderer.updateElevatorButtons(visibleCabin.getAllActiveRequests());
+        }
+
         ArrayList<Pair<CallButtons,CallButtons>> callButtons = floorrequests.getFloorRequests();
         ArrayList<Pair<CallButtons,CallButtons>> managerCallButtons = m_ControlPanelSnapShot.upDownEvents;
         Iterator<Pair<CallButtons,CallButtons>> it1 = callButtons.iterator();
