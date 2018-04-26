@@ -25,12 +25,12 @@ public class ControlPanel extends GridPane
     private boolean m_AlarmPressed = false;
     private ViewTypes m_CurrentView = ViewTypes.OVERVIEW;
     private ArrayList<Boolean> m_LockedPanels = new ArrayList<>(Arrays.asList(false, false, false, false));
-    private boolean m_KeyLock = false;
     private SceneManager m_ElevatorViewMgr = new SceneManager(); // Only on screen when viewing inside elevators.
     private SceneManager m_SystemOverviewMgr = new SceneManager(); // Only on screen when viewing system overview.
     private ArrayList<Boolean> m_Locked = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Pair<CallButtons, CallButtons>> m_UpDownEvents = new ArrayList<>();
     private ElevatorPanel m_ElevatorPanel;
+    private boolean m_AlarmOn = false;
     ControlPanel()
     {
         m_UpDownEvents.add(new Pair<>(new CallButtons(ControlLogicGlobals.MINFLOOR, DirectionType.UP), new CallButtons(ControlLogicGlobals.MINFLOOR, DirectionType.DOWN)));
@@ -139,6 +139,13 @@ public class ControlPanel extends GridPane
                     m_FloorsButtonsPressed.add(((FloorNumber) message.getMessageData()));
                     break;
                 case ControlPanelGlobals.ALARM_PRESS:
+                    m_AlarmOn = !m_AlarmOn;
+                    if(m_AlarmOn)
+                    {
+                        for(int i = 0; i < m_Locked.size(); i++) m_Locked.set(i, true);
+                        if(m_CurrentView != ViewTypes.OVERVIEW) m_ElevatorPanel.getKey().turnOn();
+                    }
+
                     m_AlarmPressed = true;
                     break;
                 case ControlPanelGlobals.CHANGE_VIEW:
