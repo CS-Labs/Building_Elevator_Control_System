@@ -77,16 +77,15 @@ public class BuildingControl implements LogicEntity
         // Get the latest control panel snap shot.
         m_ControlPanelSnapShot = m_ControlPanel.getSnapShot();
         ViewTypes currentView = m_ControlPanelSnapShot.currentView;
-        System.out.println(m_ControlPanelSnapShot.keyList);
-        boolean keyLocked = false;
-        if(keyLocked && !(currentView == ViewTypes.OVERVIEW))
+        ArrayList<Boolean> keyList = m_ControlPanelSnapShot.keyList;
+        if(!(currentView == ViewTypes.OVERVIEW) && keyList.get(currentView.toInt() - 1))
         {
           managerMode.set(currentView.toInt() - 1, true);
           if(!managerInit.get(currentView.toInt()-1))initManager.set(currentView.toInt() - 1, true);
           managerInit.set(currentView.toInt() - 1, true);
           exitManager.set(currentView.toInt() - 1, true);
         }
-        else if(!keyLocked && !(currentView == ViewTypes.OVERVIEW))
+        else if(!(currentView == ViewTypes.OVERVIEW) && !keyList.get(currentView.toInt() - 1))
         {
           if(exitManager.get(currentView.toInt() - 1))
           {
