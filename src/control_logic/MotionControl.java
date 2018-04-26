@@ -57,13 +57,7 @@ class MotionControl implements LogicEntity
   private void speedUpdate()
   {
     if(floorToGoTO == null) return;
-    //Mina's speed profile should go here
-    //experimental speed profile
     //negative speed is UP. positive is down.
-    ArrayList<Integer> speedProfile = new ArrayList<>();
-    speedProfile.add(0);
-    speedProfile.add(1);
-    speedProfile.add(0);
     //Updated speed by Mina and Javier
     ///////////////////////////////////////////////////////////////////////////////////////////////////////
     if(lastFloor > floorToGoTO.get())
