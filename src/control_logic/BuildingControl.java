@@ -1,11 +1,9 @@
 package control_logic;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import application.ControlPanel;
 import application.ControlPanelSnapShot;
@@ -38,7 +36,8 @@ public class BuildingControl implements LogicEntity
     private BuildingFireAlarm alarm;
     private ArrayList<CabinStatus> m_Statuses = new ArrayList<>();
     private ArrayList<FloorNumber> m_NextFloors = new ArrayList<>();
-//    private ArrayList<Boolean> cycleChecks = new ArrayList<>(Arrays.asList(false, false, false, false));
+    private ArrayList<HashSet<FloorNumber>> m_PreviousFloorRequests = new ArrayList<>(Arrays.asList(new HashSet<>(),
+            new HashSet<>(), new HashSet<>(), new HashSet<>()));
     private ArrayList<Boolean> managerMode = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> initManager = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> managerInit = new ArrayList<>(Arrays.asList(false, false, false, false));
@@ -105,7 +104,7 @@ public class BuildingControl implements LogicEntity
               {
                 alarmInit.set(true);
               }
-              for (int j = 1; j <= 10; j++) m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(new FloorNumber(j));
+              for (int j = 1; j <= 10; j++) m_RenderEntityManager.buttonPanelRenderer.updateElevatorButtons(status.getAllActiveRequests());
             }
             else if(!alarm.isOn())
             {
@@ -116,7 +115,7 @@ public class BuildingControl implements LogicEntity
               cabins.get(i).clearRequests();
               status.setRequests(new HashSet<>());
               ea.clearRequests(status);
-              for (int j = 1; j <= 10; j++) m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(new FloorNumber(j));
+              for (int j = 1; j <= 10; j++) m_RenderEntityManager.buttonPanelRenderer.updateElevatorButtons(status.getAllActiveRequests());
               initManager.set(i, false);
             }
             if(managerMode.get(i))
@@ -158,8 +157,6 @@ public class BuildingControl implements LogicEntity
                 (status.inManagerMode() && status.getLastFloorManager().equals(status.getDestination()) && status.getMotionStatus() == MotionStatusTypes.STOPPED))
                     && !doorsOpening.get(i)){
                 floorrequests.notifyOfArrival(lastFloor, cabinNumber, direction); // Signal arrival
-                m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(lastFloor); // Turn off button light
-
                 doorsOpening.set(i, true);
                 // Make sure we signal that it is not safe to depart since the doors will be opening
                 safeToDepart.set(i, false);
@@ -232,10 +229,7 @@ public class BuildingControl implements LogicEntity
             if(!visibleCabin.inManagerMode())m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloor());
             else if(visibleCabin.inManagerMode())m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloorManager());
             if(visibleCabin.getDestination().get() > 0) m_RenderEntityManager.destinationFloorRenderer.setFloorNumber(visibleCabin.getDestination());
-            if(m_ControlPanelSnapShot.currentView != m_PreviousView) { // Prevent meaningless re-rendering.
-                for (int i = 1; i <= 10; i++) m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(new FloorNumber(i));
-            }
-            for(FloorNumber fr : visibleCabin.getAllActiveRequests())  m_RenderEntityManager.buttonPanelRenderer.turnOnFloorButton(fr);
+            m_RenderEntityManager.buttonPanelRenderer.updateElevatorButtons(visibleCabin.getAllActiveRequests());
         }
 
 
@@ -292,7 +286,9 @@ public class BuildingControl implements LogicEntity
         {
             if(lockedPanels.get(i))
             {
-                for(FloorNumber fr : m_Statuses.get(i).getAllActiveRequests())  m_RenderEntityManager.buttonPanelRenderer.turnOffFloorButton(fr);
+                if(currentView.toInt() == i+1) {
+                    m_RenderEntityManager.buttonPanelRenderer.updateElevatorButtons(m_Statuses.get(i).getAllActiveRequests());
+                }
                 m_Statuses.get(i).setRequests(new HashSet<>());
                 cabins.get(i).clearRequests();
                 ea.clearRequests(m_Statuses.get(i));

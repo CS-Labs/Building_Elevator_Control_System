@@ -34,6 +34,8 @@ class RenderEntityManager
     private SceneManager m_SystemOverviewMgr = new SceneManager();
     private SceneManager m_ElevatorViewMng = new SceneManager();
     private ArrayList<ArrowButtonRenderer> m_ArrowButtonRenderers = new ArrayList<>();
+    private ArrayList<ArrayList<Boolean>> m_FloorsButtonStates = new ArrayList<>(Arrays.asList(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(),
+            new ArrayList<>()));
 
     HashMap<FloorNumber, Double> floorsToYLoc = new HashMap<FloorNumber, Double>() {{
         put(new FloorNumber(1), 360.0);
@@ -52,6 +54,10 @@ class RenderEntityManager
     RenderEntityManager()
     {
         m_ConstructScenes();
+        for(ArrayList<Boolean> floorButtonStates : m_FloorsButtonStates)
+        {
+            for(int i = 0; i < 10; i++) floorButtonStates.add(false);
+        }
     }
 
     void switchToCabinView()
@@ -282,8 +288,17 @@ class RenderEntityManager
             setWidthHeight(w, h);
         }
 
-        public void turnOnFloorButton(FloorNumber floorNumber) {buttonRenderers.get(floorNumber.get()-1).turnOn();}
-        public void turnOffFloorButton(FloorNumber floorNumber) {buttonRenderers.get(floorNumber.get()-1).turnOff();}
+        public void updateElevatorButtons(HashSet<FloorNumber> floors)
+        {
+            ArrayList<Boolean> statuses = new ArrayList<>(Collections.nCopies(10, false));
+            for(FloorNumber fn : floors) statuses.set(fn.get()-1, true);
+            for(int i = 0; i < statuses.size(); i++)
+            {
+                if(statuses.get(i)) buttonRenderers.get(i).turnOn();
+                else buttonRenderers.get(i).turnOff();
+            }
+        }
+
 
         @Override
         public void pulse(double deltaSeconds) {
@@ -296,22 +311,34 @@ class RenderEntityManager
         private String m_OnTexture;
         private String m_OffTexture;
         private String m_CurrentTexture;
+        boolean wasRendered = false;
+
         ElevatorButtonRenderer(int buttonNum, int x, int y, int d, int w, int h)
         {
             m_OnTexture = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/" + buttonNum + "ON.png";
             m_OffTexture = "/resources/img/CCTV_Views/elevator/elevatorFloorPanel/" + buttonNum + "OFF.png";
             m_CurrentTexture = m_OffTexture;
-            setLocationXYDepth(x, y, d);
+           setLocationXYDepth(x, y, d);
             setWidthHeight(w, h);
         }
 
-        public void turnOn() {m_CurrentTexture = m_OnTexture;}
-        public void turnOff() {m_CurrentTexture = m_OffTexture;}
+
+        public void turnOn() {
+            wasRendered = false;
+            m_CurrentTexture = m_OnTexture;
+        }
+        public void turnOff() {
+            wasRendered = false;
+            m_CurrentTexture = m_OffTexture;
+        }
 
 
 
         @Override
-        public void pulse(double deltaSeconds) {setTexture(m_CurrentTexture);}
+        public void pulse(double deltaSeconds) {
+            if(!wasRendered) setTexture(m_CurrentTexture);
+            wasRendered = true;
+        }
     }
 
 
