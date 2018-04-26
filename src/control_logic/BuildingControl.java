@@ -36,8 +36,6 @@ public class BuildingControl implements LogicEntity
     private BuildingFireAlarm alarm;
     private ArrayList<CabinStatus> m_Statuses = new ArrayList<>();
     private ArrayList<FloorNumber> m_NextFloors = new ArrayList<>();
-    private ArrayList<HashSet<FloorNumber>> m_PreviousFloorRequests = new ArrayList<>(Arrays.asList(new HashSet<>(),
-            new HashSet<>(), new HashSet<>(), new HashSet<>()));
     private ArrayList<Boolean> managerMode = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> initManager = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ArrayList<Boolean> managerInit = new ArrayList<>(Arrays.asList(false, false, false, false));

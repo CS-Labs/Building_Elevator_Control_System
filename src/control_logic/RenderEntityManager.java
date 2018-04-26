@@ -34,8 +34,6 @@ class RenderEntityManager
     private SceneManager m_SystemOverviewMgr = new SceneManager();
     private SceneManager m_ElevatorViewMng = new SceneManager();
     private ArrayList<ArrowButtonRenderer> m_ArrowButtonRenderers = new ArrayList<>();
-    private ArrayList<ArrayList<Boolean>> m_FloorsButtonStates = new ArrayList<>(Arrays.asList(new ArrayList<>(), new ArrayList<>(), new ArrayList<>(),
-            new ArrayList<>()));
 
     HashMap<FloorNumber, Double> floorsToYLoc = new HashMap<FloorNumber, Double>() {{
         put(new FloorNumber(1), 360.0);
@@ -51,14 +49,7 @@ class RenderEntityManager
     }};
 
 
-    RenderEntityManager()
-    {
-        m_ConstructScenes();
-        for(ArrayList<Boolean> floorButtonStates : m_FloorsButtonStates)
-        {
-            for(int i = 0; i < 10; i++) floorButtonStates.add(false);
-        }
-    }
+    RenderEntityManager() {m_ConstructScenes();}
 
     void switchToCabinView()
     {
