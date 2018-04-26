@@ -13,7 +13,7 @@ public class ElevatorAlgorithm
     private class Queues{
         ArrayList<Integer> up;
         ArrayList<Integer> down;
-        int direction = 0;
+        int direction = 1;
 
         Queues(){
             up = new ArrayList<>();
@@ -38,21 +38,35 @@ public class ElevatorAlgorithm
             // so the logic works out
 //            if(direction == DirectionType.NONE) direction = DirectionType.UP;
 //            System.out.println(up.size() + " " + down.size());
-            if(direction == 1|| direction == 0){
-                if(up.size() == 0) direction = -1;
-                else {
-                    direction = 1;
-                    floor = up.get(0);
-                }
+            if(up.size() == 0 && down.size() == 0){
+                direction = 1;
+                return floor;
             }
-            if(direction == -1 || direction == 0){
-                if(down.size() == 0) direction = 0;
-                else {
-                    direction = -1;
-                    floor = down.get(0);
-                }
+            if(up.size() == 0){
+                direction = -1;
+                return down.get(0);
+            }
+            if(down.size() == 0){
+                direction = 1;
+                return up.get(0);
             }
             return floor;
+
+//            if(direction == 1|| direction == 0){
+//                if(up.size() == 0) direction = -1;
+//                else {
+//                    direction = 1;
+//                    floor = up.get(0);
+//                }
+//            }
+//            if(direction == -1 || direction == 0){
+//                if(down.size() == 0) direction = 0;
+//                else {
+//                    direction = -1;
+//                    floor = down.get(0);
+//                }
+//            }
+//            return floor;
         }
         public void pop(){
             if(direction == 1){
@@ -67,10 +81,10 @@ public class ElevatorAlgorithm
             down.clear();
         }
     }
-    
+
     public void clearRequests(CabinStatus status)
     {
-      cabinqueues.get(status.getCabinNumber().get()-1).clear();
+        cabinqueues.get(status.getCabinNumber().get()-1).clear();
     }
 
     private ArrayList<Queues> cabinqueues;
@@ -86,15 +100,15 @@ public class ElevatorAlgorithm
         Queues q = cabinqueues.get(cs.getCabinNumber().get()-1);
         if(!cs.inManagerMode())
         {
-          if(q.get() == cs.getLastFloor().get()){
-              q.pop();
-          }
+            if(q.get() == cs.getLastFloor().get()){
+                q.pop();
+            }
         }
         else if(cs.inManagerMode())
         {
-          if(q.get() == cs.getLastFloorManager().get()){
-            q.pop();
-          }
+            if(q.get() == cs.getLastFloorManager().get()){
+                q.pop();
+            }
         }
     }
 
@@ -132,9 +146,9 @@ public class ElevatorAlgorithm
                     // check if already scheduled or already on this floor
                     for (Queues q : cabinqueues) {
                         if (q.isIn(b.getFloor().get())) break_ = true;
-                        for (CabinStatus cs : cabinStatuses) {
-                            if (cs.getLastFloor().get() == b.getFloor().get()) break_ = true;
-                        }
+//                        for (CabinStatus cs : cabinStatuses) {
+//                            if (cs.getLastFloor().get() == b.getFloor().get()) break_ = true;
+//                        }
                     }
 
                     if (break_) break;
@@ -152,6 +166,8 @@ public class ElevatorAlgorithm
                             cabinqueues.get(best_cabin - 1).addSorted(b.getFloor().get(), 1);
                         } else if (cabinStatuses.get(best_cabin - 1).getLastFloor().get() > b.getFloor().get()) {
                             cabinqueues.get(best_cabin - 1).addSorted(b.getFloor().get(), -1);
+                        } else if(cabinStatuses.get(best_cabin-1).getLastFloor().get() == b.getFloor().get()){
+                            cabinqueues.get(best_cabin-1).addSorted(b.getFloor().get(), cabinqueues.get(cabinStatuses.get(best_cabin-1).getCabinNumber().get()-1).direction);
                         }
                     }
                 }
@@ -163,31 +179,24 @@ public class ElevatorAlgorithm
 
                 // check if already scheduled
                 Queues q = cabinqueues.get(cn);
-                //System.out.println("----------");
-                for (int i : q.up) {
-                    //System.out.print(i + " ");
-                }
-                //System.out.println();
-                for (int i : q.down) {
-                    //System.out.print(i + " ");
-                }
-                //System.out.println();
-                //System.out.println("----------");
+
                 for (FloorNumber fn : requests) {
                     if (q.isIn(fn.get())) {
 //                    System.out.println("in in");
                         break;
                     }
-                    if (cs.getLastFloor().get() == fn.get()) {
-//                    System.out.println("last floor");
-                        break;
-                    }
+//                    if (cs.getLastFloor().get() == fn.get()) {
+////                    System.out.println("last floor");
+//                        break;
+//                    }
 //                System.out.println("ADD REQUEST");
 
                     if (cs.getLastFloor().get() < fn.get()) {
                         cabinqueues.get(cn).addSorted(fn.get(), 1);
                     } else if (cs.getLastFloor().get() > fn.get()) {
                         cabinqueues.get(cn).addSorted(fn.get(), -1);
+                    } else if(cs.getLastFloor().get() == fn.get()){
+                        cabinqueues.get(cn).addSorted(fn.get(), cabinqueues.get(cs.getCabinNumber().get()-1).direction);
                     }
                 }
             }
@@ -202,6 +211,7 @@ public class ElevatorAlgorithm
             }
         }
         else if (wasFire){
+//            System.out.println("wasFire");
             for(int i = 0; i < cabinStatuses.size(); i+= 1){
                 if(!managerMode.get(i)){
                     cabinqueues.get(i).clear();
@@ -210,6 +220,8 @@ public class ElevatorAlgorithm
                     else nextFloors.add(i, new FloorNumber(-1));
                 }
                 else {
+//                    System.out.println("manager mode");
+//                    System.out.println(cabinqueues.get(i).up.size() + " " + cabinqueues.get(i).down.size());
                     CabinStatus cs = cabinStatuses.get(i);
                     int cn = cs.getCabinNumber().get() - 1;
                     HashSet<FloorNumber> requests = cs.getAllActiveRequests();
@@ -224,22 +236,25 @@ public class ElevatorAlgorithm
                         if (cs.getLastFloor().get() == fn.get()) {
                             break;
                         }
-
-                        //System.out.println("----------");
-                        for (int j : q.up) {
-                            //System.out.print(j + " ");
-                        }
-                        System.out.println();
-                        for (int j : q.down) {
-                            //System.out.print(j + " ");
-                        }
-                        //System.out.println();
-                        //System.out.println("----------");
+//
+//                        System.out.println("----------");
+//                        for (int j : q.up) {
+//                            System.out.print(j + " ");
+//                        }
+//                        System.out.println();
+//                        for (int j : q.down) {
+//                            System.out.print(j + " ");
+//                        }
+//                        System.out.println();
+//                        System.out.println("----------");
 
                         if (cs.getLastFloor().get() < fn.get()) {
                             cabinqueues.get(cn).addSorted(fn.get(), 1);
                         } else if (cs.getLastFloor().get() > fn.get()) {
                             cabinqueues.get(cn).addSorted(fn.get(), -1);
+                        }
+                        else if(cs.getLastFloor().get() == fn.get()){
+                            cabinqueues.get(cn).addSorted(fn.get(), cabinqueues.get(cs.getCabinNumber().get()-1).direction);
                         }
                     }
                     int floor = q.get();
@@ -248,6 +263,13 @@ public class ElevatorAlgorithm
                 }
             }
         }
+        for(int j = 0; j< cabinStatuses.size(); j+=1){
+            if(cabinStatuses.get(j).getLastFloor().get() == 1) cabinqueues.get(j).direction = 1;
+            if(cabinStatuses.get(j).getLastFloor().get() == 10) cabinqueues.get(j).direction = -1;
+//            System.out.print(cabinqueues.get(j).direction);
+        }
+//        System.out.println();
+
         return nextFloors;
     }
 }

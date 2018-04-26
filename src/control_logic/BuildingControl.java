@@ -90,7 +90,7 @@ public class BuildingControl implements LogicEntity
           if(exitManager.get(currentView.toInt() - 1))
           {
             exitManager.set(currentView.toInt() - 1, false);
-            ea.clearRequests(cabins.get(currentView.toInt() - 1).getStatus());
+            ea.clearRequests(cabins.get(currentView.toInt() - 1).getStat());
             cabins.get(currentView.toInt() - 1).clearRequests();
           }
           managerMode.set(currentView.toInt() - 1, false);
@@ -104,6 +104,14 @@ public class BuildingControl implements LogicEntity
               if(i == 3)
               {
                 alarmInit.set(true);
+                              for(CabinStatus cs : m_Statuses) cs.setRequests(new HashSet<>());
+            for(Cabin cabin : cabins) cabin.clearRequests();
+            // Clear maintenance/exit modes
+            for (int j = 0; j < cabins.size(); ++j) {
+                managerMode.set(j, false);
+                exitManager.set(j, false);
+            }
+            floorrequests.clearFloorRequests();
               }
               for (int j = 1; j <= 10; j++) m_RenderEntityManager.buttonPanelRenderer.updateElevatorButtons(status.getAllActiveRequests());
             }
@@ -154,6 +162,8 @@ public class BuildingControl implements LogicEntity
                 }
             }
             // If the cabin has arrived at it's destination notify of arrival.
+            if(i == 0) {System.out.println(status.inManagerMode() + " " + status.getLastFloor().equals(status.getDestination()) + " " + (status.getMotionStatus() == MotionStatusTypes.STOPPED) + " " + doorsOpening.get(i));}
+
             if(((!status.inManagerMode() && status.getLastFloor().equals(status.getDestination()) && status.getMotionStatus() == MotionStatusTypes.STOPPED)||
                 (status.inManagerMode() && status.getLastFloorManager().equals(status.getDestination()) && status.getMotionStatus() == MotionStatusTypes.STOPPED))
                     && !doorsOpening.get(i)){
@@ -239,6 +249,14 @@ public class BuildingControl implements LogicEntity
         m_RenderEntityManager.updateCabinLocations(m_Statuses);
 
 
+        for(Cabin c: cabins){
+            CabinStatus cs = c.getStat();
+            if(alarm.isOn()) {
+                HashSet<FloorNumber> requests = cs.getAllActiveRequests();
+                requests.clear();
+            }
+        }
+
         // Merge any requests from the manager with any randomly generated ones.
         if(m_ControlPanelSnapShot.currentView != ViewTypes.OVERVIEW) {
             CabinStatus inViewCabin = m_Statuses.get(m_ControlPanelSnapShot.currentView.toInt() - 1);
@@ -246,6 +264,10 @@ public class BuildingControl implements LogicEntity
             requests.addAll(m_ControlPanelSnapShot.manualFloorsPresses);
             boolean inManagerMode = inViewCabin.inManagerMode();
             //Filter manual requests.
+            if(alarm.isOn()){
+                requests.clear();
+                requests.addAll(m_ControlPanelSnapShot.manualFloorsPresses);
+            }
             if(!inManagerMode)
             {
               inViewCabin.setRequests(requests);
@@ -264,7 +286,6 @@ public class BuildingControl implements LogicEntity
               });
             }
         }
-
 
         // If the user is viewing the inside of one of the cabins then render the cabin.
         if(currentView != ViewTypes.OVERVIEW)
@@ -307,18 +328,7 @@ public class BuildingControl implements LogicEntity
                 ea.clearRequests(m_Statuses.get(i));
             }
         }
-        if(alarm.isOn())
-        {
-            for(CabinStatus cs : m_Statuses) cs.setRequests(new HashSet<>());
-            for(Cabin cabin : cabins) cabin.clearRequests();
-            // Clear maintenance/exit modes
-            for (int i = 0; i < cabins.size(); ++i) {
-                managerMode.set(i, false);
-                exitManager.set(i, false);
-            }
-            callButtons.clear();
-            floorrequests.clearFloorRequests();
-        }
+
         // Now send the data to the Elevator Algorithm.
         // The algorithm will schedule the cabins and return the current
         // destination floor of each cabin.
@@ -330,7 +340,8 @@ public class BuildingControl implements LogicEntity
 
         if(!alarm.isOn()) m_NextFloors = ea.schedule(m_Statuses,callButtons,alarm.isOn(), managerMode);
         else m_NextFloors = ea.schedule(m_Statuses,managerCallButtons,alarm.isOn(), managerMode);
-
+//        System.out.println(m_NextFloors);
+//        System.out.println(managerMode);
         // Now update each of the cabins destination floors
         for(int i = 0; i < cabins.size(); i++) {
             //if(_doorControl.getStatus(m_Statuses.get(i).getLastFloor(),m_Statuses.get(i).getCabinNumber()) == DoorStatusType.CLOSED ){//&& m_NextFloors.get(i).get() != -1) {
@@ -340,7 +351,7 @@ public class BuildingControl implements LogicEntity
                     FloorNumber nextFloor = m_NextFloors.get(i);
                     // Only notify the cabin to depart if the new next floor is different from
                     // the last destination
-                    if (nextFloor.get() == cabins.get(i).getStatus().getDestination().get()) continue;
+                    if (nextFloor.get() == cabins.get(i).getStat().getDestination().get()) continue;
                     cabins.get(i).setDestination(nextFloor);
                     doorsOpening.set(i, false);
                     //cycleChecks.set(i, false);
