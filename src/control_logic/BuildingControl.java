@@ -1,9 +1,11 @@
 package control_logic;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import application.ControlPanel;
 import application.ControlPanelSnapShot;
@@ -45,6 +47,7 @@ public class BuildingControl implements LogicEntity
     private ArrayList<Boolean> doorsOpening = new ArrayList<>(Arrays.asList(false, false, false, false));
     private ConcurrentLinkedQueue<Callback> prepareElevatorForDepartureQueue = new ConcurrentLinkedQueue<>();
     AtomicBoolean alarmInit = new AtomicBoolean(false);
+    private ArrayList<Integer> managerFloors = new ArrayList<>(Arrays.asList(0,0,0,0));
 
     private ArrayList<Double> timers = new ArrayList<>(Arrays.asList(0.0, 0.0, 0.0, 0.0));
     private int numCabins = 4;
@@ -155,6 +158,7 @@ public class BuildingControl implements LogicEntity
             if(((!status.inManagerMode() && status.getLastFloor().equals(status.getDestination()) && status.getMotionStatus() == MotionStatusTypes.STOPPED)||
                 (status.inManagerMode() && status.getLastFloorManager().equals(status.getDestination()) && status.getMotionStatus() == MotionStatusTypes.STOPPED))
                     && !doorsOpening.get(i)){
+                if(status.inManagerMode())managerFloors.set(i, 0);
                 floorrequests.notifyOfArrival(lastFloor, cabinNumber, direction); // Signal arrival
                 doorsOpening.set(i, true);
                 // Make sure we signal that it is not safe to depart since the doors will be opening
@@ -250,7 +254,15 @@ public class BuildingControl implements LogicEntity
             else if(inManagerMode)
             {
               HashSet<FloorNumber> filteredFloors = filteredRequests(m_ControlPanelSnapShot.manualFloorsPresses, inViewCabin.getLastFloorManager().get());
-              if(filteredFloors.size() > 0) inViewCabin.setRequests(filteredFloors);
+              if(filteredFloors.size() == 0 && managerFloors.get(m_ControlPanelSnapShot.currentView.toInt() - 1) != 0)filteredFloors.add(new FloorNumber(managerFloors.get(m_ControlPanelSnapShot.currentView.toInt() - 1)));
+              inViewCabin.setRequests(filteredFloors);
+              if(filteredFloors.size() == 1)filteredFloors.forEach((floor)->
+              {
+                if(floor.get() > 0)
+                {
+                  managerFloors.set(m_ControlPanelSnapShot.currentView.toInt() - 1, floor.get());
+                }
+              });
             }
         }
 
