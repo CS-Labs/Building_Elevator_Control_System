@@ -270,7 +270,6 @@ public class BuildingControl implements LogicEntity
         if(currentView != ViewTypes.OVERVIEW)
         {
             CabinStatus visibleCabin = m_Statuses.get(currentView.toInt()-1);
-            System.out.println(visibleCabin.getAllActiveRequests());
             if(!visibleCabin.inManagerMode())m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloor());
             else if(visibleCabin.inManagerMode())m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloorManager());
             if(visibleCabin.getDestination().get() > 0) m_RenderEntityManager.destinationFloorRenderer.setFloorNumber(visibleCabin.getDestination());

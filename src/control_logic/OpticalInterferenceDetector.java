@@ -30,7 +30,8 @@ public class OpticalInterferenceDetector
 
     public boolean interferenceDetected() {
         // Random probability random interference occurs 1/10000
-        return rand.nextInt(10000) == 0;
+        //return rand.nextInt(10000) == 0;
+        return false;
     }
 
     class MouseInputHandler extends MouseInputComponent
