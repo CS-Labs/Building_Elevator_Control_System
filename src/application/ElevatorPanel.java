@@ -17,6 +17,7 @@ import named_types.FloorNumber;
 
 class ElevatorPanel extends GridPane
 {
+    Key m_Key;
     ElevatorPanel(int x, int y)
     {
         
@@ -49,11 +50,14 @@ class ElevatorPanel extends GridPane
             }
         }
         // Add the key.
-        Key key = new Key();
-        buttonPanel.add(key, 1, 5,5,1);
-        GridPane.setMargin(key, new Insets(10,10,10,30));
+        m_Key = new Key();
+        buttonPanel.add(m_Key, 1, 5,5,1);
+        GridPane.setMargin(m_Key, new Insets(10,10,10,30));
         return buttonPanel;
     }
+
+    public Key getKey() {return m_Key;}
+
 
 }
 

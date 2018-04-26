@@ -74,7 +74,8 @@ public class BuildingControl implements LogicEntity
         // Get the latest control panel snap shot.
         m_ControlPanelSnapShot = m_ControlPanel.getSnapShot();
         ViewTypes currentView = m_ControlPanelSnapShot.currentView;
-        boolean keyLocked = m_ControlPanelSnapShot.isKeyLocked;
+        System.out.println(m_ControlPanelSnapShot.keyList);
+        boolean keyLocked = false;
         if(keyLocked && !(currentView == ViewTypes.OVERVIEW))
         {
           managerMode.set(currentView.toInt() - 1, true);
@@ -220,15 +221,6 @@ public class BuildingControl implements LogicEntity
             }
         }
 
-        // If the user is viewing the inside of one of the cabins then render the cabin.
-        if(currentView != ViewTypes.OVERVIEW)
-        {
-            CabinStatus visibleCabin = m_Statuses.get(currentView.toInt()-1);
-            if(!visibleCabin.inManagerMode())m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloor());
-            else if(visibleCabin.inManagerMode())m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloorManager());
-            if(visibleCabin.getDestination().get() > 0) m_RenderEntityManager.destinationFloorRenderer.setFloorNumber(visibleCabin.getDestination());
-            m_RenderEntityManager.buttonPanelRenderer.updateElevatorButtons(visibleCabin.getAllActiveRequests());
-        }
 
 
         // First check if a random fire has taken place.
@@ -258,9 +250,22 @@ public class BuildingControl implements LogicEntity
             else if(inManagerMode)
             {
               HashSet<FloorNumber> filteredFloors = filteredRequests(m_ControlPanelSnapShot.manualFloorsPresses, inViewCabin.getLastFloorManager().get());
-              inViewCabin.setRequests(filteredFloors);
+              if(filteredFloors.size() > 0) inViewCabin.setRequests(filteredFloors);
             }
         }
+
+
+        // If the user is viewing the inside of one of the cabins then render the cabin.
+        if(currentView != ViewTypes.OVERVIEW)
+        {
+            CabinStatus visibleCabin = m_Statuses.get(currentView.toInt()-1);
+            System.out.println(visibleCabin.getAllActiveRequests());
+            if(!visibleCabin.inManagerMode())m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloor());
+            else if(visibleCabin.inManagerMode())m_RenderEntityManager.floorSignRenderer.updateFloorNumber(visibleCabin.getLastFloorManager());
+            if(visibleCabin.getDestination().get() > 0) m_RenderEntityManager.destinationFloorRenderer.setFloorNumber(visibleCabin.getDestination());
+            m_RenderEntityManager.buttonPanelRenderer.updateElevatorButtons(visibleCabin.getAllActiveRequests());
+        }
+
         ArrayList<Pair<CallButtons,CallButtons>> callButtons = floorrequests.getFloorRequests();
         ArrayList<Pair<CallButtons,CallButtons>> managerCallButtons = m_ControlPanelSnapShot.upDownEvents;
         Iterator<Pair<CallButtons,CallButtons>> it1 = callButtons.iterator();

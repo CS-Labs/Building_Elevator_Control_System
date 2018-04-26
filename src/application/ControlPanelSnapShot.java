@@ -15,16 +15,16 @@ public class ControlPanelSnapShot {
     // Index + 1 corresponds to the elevator panel numbers, boolean value true if locked, false if not locked.
     public ArrayList<Boolean> lockedPanels;
     public ViewTypes currentView;
-    public boolean isKeyLocked;
+    public ArrayList<Boolean> keyList;
     public ArrayList<Pair<CallButtons,CallButtons>> upDownEvents;
     ControlPanelSnapShot(HashSet<FloorNumber> manualFloorsPresses, boolean isAlarmOn,
-                         ArrayList<Boolean> lockedPanels, ViewTypes currentView, boolean isKeyLocked,
+                         ArrayList<Boolean> lockedPanels, ViewTypes currentView, ArrayList<Boolean> keyList,
                          ArrayList<Pair<CallButtons,CallButtons>> upDownEvent) {
         this.manualFloorsPresses = manualFloorsPresses;
         this.isAlarmOn = isAlarmOn;
         this.lockedPanels = lockedPanels;
         this.currentView = currentView;
-        this.isKeyLocked = isKeyLocked;
+        this.keyList = keyList;
         this.upDownEvents = upDownEvent;
     }
 }
